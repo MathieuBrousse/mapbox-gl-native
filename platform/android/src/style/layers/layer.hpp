@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mbgl/util/noncopyable.hpp>
-#include <mbgl/map/map.hpp>
+#include <mbgl/style/style.hpp>
 #include <mbgl/style/layer.hpp>
 
 #include "../value.hpp"
@@ -23,12 +23,12 @@ public:
     /*
      * Called when a non-owning peer object is created on the c++ side
      */
-    Layer(mbgl::Map&, mbgl::style::Layer&);
+    Layer(mbgl::style::Style&, mbgl::style::Layer&);
 
     /*
      * Called when a owning peer object is created on the c++ side
      */
-    Layer(mbgl::Map&, std::unique_ptr<mbgl::style::Layer>);
+    Layer(mbgl::style::Style&, std::unique_ptr<mbgl::style::Layer>);
 
     /*
      * Called when a Java object was created from the jvm side
@@ -44,7 +44,7 @@ public:
      */
     void setLayer(std::unique_ptr<mbgl::style::Layer>);
 
-    void addToMap(mbgl::Map&, mbgl::optional<std::string>);
+    void addToStyle(mbgl::style::Style&, mbgl::optional<std::string>);
 
     jni::String getId(jni::JNIEnv&);
 
@@ -86,8 +86,8 @@ protected:
     // Raw reference to the layer
     mbgl::style::Layer& layer;
 
-    // Map is set when the layer is retrieved or after adding to the map
-    mbgl::Map* map;
+    // Style is set when the layer is retrieved or after adding to the style
+    mbgl::style::Style* style;
 
 };
 

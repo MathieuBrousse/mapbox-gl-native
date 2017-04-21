@@ -11,24 +11,24 @@ namespace mbgl {
 namespace android {
 
     /**
-     * Creates an owning peer object (for layers not attached to the map) from the JVM side
+     * Creates an owning peer object (for layers not attached to the style) from the JVM side
      */
     FillLayer::FillLayer(jni::JNIEnv& env, jni::String layerId, jni::String sourceId)
         : Layer(env, std::make_unique<mbgl::style::FillLayer>(jni::Make<std::string>(env, layerId), jni::Make<std::string>(env, sourceId))) {
     }
 
     /**
-     * Creates a non-owning peer object (for layers currently attached to the map)
+     * Creates a non-owning peer object (for layers currently attached to the style)
      */
-    FillLayer::FillLayer(mbgl::Map& map, mbgl::style::FillLayer& coreLayer)
-        : Layer(map, coreLayer) {
+    FillLayer::FillLayer(mbgl::style::Style& style, mbgl::style::FillLayer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
     /**
-     * Creates an owning peer object (for layers not attached to the map)
+     * Creates an owning peer object (for layers not attached to the style)
      */
-    FillLayer::FillLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::FillLayer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    FillLayer::FillLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::FillLayer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     FillLayer::~FillLayer() = default;

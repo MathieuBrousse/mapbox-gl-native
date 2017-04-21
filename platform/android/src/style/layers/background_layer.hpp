@@ -21,9 +21,9 @@ public:
 
     BackgroundLayer(jni::JNIEnv&, jni::String);
 
-    BackgroundLayer(mbgl::Map&, mbgl::style::BackgroundLayer&);
+    BackgroundLayer(mbgl::style::Style&, mbgl::style::BackgroundLayer&);
 
-    BackgroundLayer(mbgl::Map&, std::unique_ptr<mbgl::style::BackgroundLayer>);
+    BackgroundLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::BackgroundLayer>);
 
     ~BackgroundLayer();
 

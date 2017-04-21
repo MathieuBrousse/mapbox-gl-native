@@ -21,9 +21,9 @@ public:
 
     LineLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    LineLayer(mbgl::Map&, mbgl::style::LineLayer&);
+    LineLayer(mbgl::style::Style&, mbgl::style::LineLayer&);
 
-    LineLayer(mbgl::Map&, std::unique_ptr<mbgl::style::LineLayer>);
+    LineLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::LineLayer>);
 
     ~LineLayer();
 

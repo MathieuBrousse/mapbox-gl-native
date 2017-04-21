@@ -21,9 +21,9 @@ public:
 
     SymbolLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    SymbolLayer(mbgl::Map&, mbgl::style::SymbolLayer&);
+    SymbolLayer(mbgl::style::Style&, mbgl::style::SymbolLayer&);
 
-    SymbolLayer(mbgl::Map&, std::unique_ptr<mbgl::style::SymbolLayer>);
+    SymbolLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::SymbolLayer>);
 
     ~SymbolLayer();
 

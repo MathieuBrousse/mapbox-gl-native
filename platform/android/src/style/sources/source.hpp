@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mbgl/util/noncopyable.hpp>
-#include <mbgl/map/map.hpp>
+#include <mbgl/style/style.hpp>
 #include <mbgl/style/source.hpp>
 
 #include "../value.hpp"
@@ -23,7 +23,7 @@ public:
     /*
      * Called when a Java object is created on the c++ side
      */
-    Source(mbgl::Map&, mbgl::style::Source&);
+    Source(mbgl::style::Style&, mbgl::style::Source&);
 
     /*
      * Called when a Java object was created from the jvm side
@@ -39,7 +39,7 @@ public:
 
     style::Source& get();
 
-    void addToMap(mbgl::Map&);
+    void addToStyle(mbgl::style::Style&);
 
     virtual jni::jobject* createJavaPeer(jni::JNIEnv&) = 0;
 
@@ -57,8 +57,8 @@ protected:
     // Raw pointer that is valid until the source is removed from the map
     mbgl::style::Source& source;
 
-    // Map pointer is valid for newly created sources only after adding to the map
-    mbgl::Map* map;
+    // Style pointer is valid for newly created sources only after adding to the style
+    mbgl::style::Style* style;
 };
 
 } // namespace android

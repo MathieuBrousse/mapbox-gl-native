@@ -22,8 +22,8 @@ namespace android {
         ) {
     }
 
-    RasterSource::RasterSource(mbgl::Map& map, mbgl::style::RasterSource& coreSource)
-        : Source(map, coreSource) {
+    RasterSource::RasterSource(mbgl::style::Style& style, mbgl::style::RasterSource& coreSource)
+        : Source(style, coreSource) {
     }
 
     RasterSource::~RasterSource() = default;

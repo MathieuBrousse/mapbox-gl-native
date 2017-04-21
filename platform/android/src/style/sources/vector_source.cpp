@@ -28,8 +28,8 @@ namespace android {
         ) {
     }
 
-    VectorSource::VectorSource(mbgl::Map& map, mbgl::style::VectorSource& coreSource)
-        : Source(map, coreSource) {
+    VectorSource::VectorSource(mbgl::style::Style& style, mbgl::style::VectorSource& coreSource)
+        : Source(style, coreSource) {
     }
 
     VectorSource::~VectorSource() = default;

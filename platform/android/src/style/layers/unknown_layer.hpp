@@ -16,9 +16,9 @@ public:
 
     static void registerNative(jni::JNIEnv&);
 
-    UnknownLayer(mbgl::Map&, mbgl::style::Layer&);
+    UnknownLayer(mbgl::style::Style&, mbgl::style::Layer&);
 
-    UnknownLayer(mbgl::Map&, std::unique_ptr<mbgl::style::Layer>);
+    UnknownLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::Layer>);
 
     ~UnknownLayer() = default;
 

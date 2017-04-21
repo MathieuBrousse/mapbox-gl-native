@@ -11,24 +11,24 @@ namespace mbgl {
 namespace android {
 
     /**
-     * Creates an owning peer object (for layers not attached to the map) from the JVM side
+     * Creates an owning peer object (for layers not attached to the style) from the JVM side
      */
     RasterLayer::RasterLayer(jni::JNIEnv& env, jni::String layerId, jni::String sourceId)
         : Layer(env, std::make_unique<mbgl::style::RasterLayer>(jni::Make<std::string>(env, layerId), jni::Make<std::string>(env, sourceId))) {
     }
 
     /**
-     * Creates a non-owning peer object (for layers currently attached to the map)
+     * Creates a non-owning peer object (for layers currently attached to the style)
      */
-    RasterLayer::RasterLayer(mbgl::Map& map, mbgl::style::RasterLayer& coreLayer)
-        : Layer(map, coreLayer) {
+    RasterLayer::RasterLayer(mbgl::style::Style& style, mbgl::style::RasterLayer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
     /**
-     * Creates an owning peer object (for layers not attached to the map)
+     * Creates an owning peer object (for layers not attached to the style)
      */
-    RasterLayer::RasterLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::RasterLayer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    RasterLayer::RasterLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::RasterLayer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     RasterLayer::~RasterLayer() = default;

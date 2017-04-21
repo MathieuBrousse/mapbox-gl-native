@@ -14,23 +14,23 @@
 namespace mbgl {
 namespace android {
 
-Source* initializeSourcePeer(mbgl::Map& map, mbgl::style::Source& coreSource) {
+Source* initializeSourcePeer(mbgl::style::Style& style, mbgl::style::Source& coreSource) {
     Source* source;
     if (coreSource.is<mbgl::style::VectorSource>()) {
-        source = new VectorSource(map, *coreSource.as<mbgl::style::VectorSource>());
+        source = new VectorSource(style, *coreSource.as<mbgl::style::VectorSource>());
     } else if (coreSource.is<mbgl::style::RasterSource>()) {
-        source = new RasterSource(map, *coreSource.as<mbgl::style::RasterSource>());
+        source = new RasterSource(style, *coreSource.as<mbgl::style::RasterSource>());
     } else if (coreSource.is<mbgl::style::GeoJSONSource>()) {
-        source = new GeoJSONSource(map, *coreSource.as<mbgl::style::GeoJSONSource>());
+        source = new GeoJSONSource(style, *coreSource.as<mbgl::style::GeoJSONSource>());
     } else {
-        source = new UnknownSource(map, coreSource);
+        source = new UnknownSource(style, coreSource);
     }
 
     return source;
 }
 
-jni::jobject* createJavaSourcePeer(jni::JNIEnv& env, mbgl::Map& map, mbgl::style::Source& coreSource) {
-    std::unique_ptr<Source> peerSource = std::unique_ptr<Source>(initializeSourcePeer(map, coreSource));
+jni::jobject* createJavaSourcePeer(jni::JNIEnv& env, mbgl::style::Style& style, mbgl::style::Source& coreSource) {
+    std::unique_ptr<Source> peerSource = std::unique_ptr<Source>(initializeSourcePeer(style, coreSource));
     jni::jobject* result = peerSource->createJavaPeer(env);
     peerSource.release();
     return result;

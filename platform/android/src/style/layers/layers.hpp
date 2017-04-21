@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mbgl/map/map.hpp>
+#include <mbgl/style/style.hpp>
 #include <mbgl/style/layer.hpp>
 
 #include "layer.hpp"
@@ -13,12 +13,12 @@ namespace android {
 /**
  * Create a non-owning peer
  */
-jni::jobject* createJavaLayerPeer(jni::JNIEnv&, mbgl::Map&, mbgl::style::Layer&);
+jni::jobject* createJavaLayerPeer(jni::JNIEnv&, mbgl::style::Style&, mbgl::style::Layer&);
 
 /**
  * Create an owning peer
  */
-jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, mbgl::Map& map, std::unique_ptr<mbgl::style::Layer>);
+jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, mbgl::style::Style&, std::unique_ptr<mbgl::style::Layer>);
 
 void registerNativeLayers(jni::JNIEnv&);
 

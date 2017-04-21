@@ -37,49 +37,49 @@ template <> struct PeerType<style::CustomLayer> { using Type = android::CustomLa
 
 // Inititalizes a non-owning peer
 struct LayerPeerIntitializer {
-    mbgl::Map& map;
+    mbgl::style::Style& style;
 
     template <class LayerType>
     Layer* operator()(LayerType& layer) {
-        return new typename PeerType<LayerType>::Type(map, layer);
+        return new typename PeerType<LayerType>::Type(style, layer);
     }
 };
 
-static Layer* initializeLayerPeer(mbgl::Map& map, mbgl::style::Layer& coreLayer) {
-    Layer* layer = coreLayer.accept(LayerPeerIntitializer {map});
-    return layer ? layer : new UnknownLayer(map, coreLayer);
+static Layer* initializeLayerPeer(mbgl::style::Style& style, mbgl::style::Layer& coreLayer) {
+    Layer* layer = coreLayer.accept(LayerPeerIntitializer {style});
+    return layer ? layer : new UnknownLayer(style, coreLayer);
 }
 
 // Initializes an owning peer
 // Only usable once since it needs to pass on ownership
 // of the given layer and thus enforced to be an rvalue
 struct UniqueLayerPeerIntitializer {
-    mbgl::Map& map;
+    mbgl::style::Style& style;
     std::unique_ptr<style::Layer> layer;
 
     template <class LayerType>
     Layer* operator()(LayerType&) && {
         return new typename PeerType<LayerType>::Type(
-                map,
+                style,
                 std::unique_ptr<LayerType>(layer.release()->as<LayerType>())
         );
     }
 };
 
-static Layer* initializeLayerPeer(Map& map, std::unique_ptr<mbgl::style::Layer> coreLayer) {
-    Layer* layer = coreLayer->accept(UniqueLayerPeerIntitializer {map, std::move(coreLayer)});
-    return layer ? layer : new UnknownLayer(map, std::move(coreLayer));
+static Layer* initializeLayerPeer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::Layer> coreLayer) {
+    Layer* layer = coreLayer->accept(UniqueLayerPeerIntitializer {style, std::move(coreLayer)});
+    return layer ? layer : new UnknownLayer(style, std::move(coreLayer));
 }
 
-jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, Map& map, style::Layer& coreLayer) {
-    std::unique_ptr<Layer> peerLayer = std::unique_ptr<Layer>(initializeLayerPeer(map, coreLayer));
+jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, mbgl::style::Style& style, style::Layer& coreLayer) {
+    std::unique_ptr<Layer> peerLayer = std::unique_ptr<Layer>(initializeLayerPeer(style, coreLayer));
     jni::jobject* result = peerLayer->createJavaPeer(env);
     peerLayer.release();
     return result;
 }
 
-jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, mbgl::Map& map, std::unique_ptr<mbgl::style::Layer> coreLayer) {
-    std::unique_ptr<Layer> peerLayer = std::unique_ptr<Layer>(initializeLayerPeer(map, std::move(coreLayer)));
+jni::jobject* createJavaLayerPeer(jni::JNIEnv& env, mbgl::style::Style& style, std::unique_ptr<mbgl::style::Layer> coreLayer) {
+    std::unique_ptr<Layer> peerLayer = std::unique_ptr<Layer>(initializeLayerPeer(style, std::move(coreLayer)));
     jni::jobject* result = peerLayer->createJavaPeer(env);
     peerLayer.release();
     return result;

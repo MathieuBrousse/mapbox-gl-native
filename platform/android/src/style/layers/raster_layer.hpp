@@ -21,9 +21,9 @@ public:
 
     RasterLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    RasterLayer(mbgl::Map&, mbgl::style::RasterLayer&);
+    RasterLayer(mbgl::style::Style&, mbgl::style::RasterLayer&);
 
-    RasterLayer(mbgl::Map&, std::unique_ptr<mbgl::style::RasterLayer>);
+    RasterLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::RasterLayer>);
 
     ~RasterLayer();
 

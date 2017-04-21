@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mbgl/map/map.hpp>
+#include <mbgl/style/style.hpp>
 #include <mbgl/style/source.hpp>
 
 #include "source.hpp"
@@ -10,9 +10,9 @@
 namespace mbgl {
 namespace android {
 
-    mbgl::android::Source* initializeSourcePeer(mbgl::Map&, mbgl::style::Source&);
+    mbgl::android::Source* initializeSourcePeer(mbgl::style::Style&, mbgl::style::Source&);
 
-    jni::jobject* createJavaSourcePeer(jni::JNIEnv&, mbgl::Map&, mbgl::style::Source&);
+    jni::jobject* createJavaSourcePeer(jni::JNIEnv&, mbgl::style::Style&, mbgl::style::Source&);
 
     void registerNativeSources(jni::JNIEnv&);
 

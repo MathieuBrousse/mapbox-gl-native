@@ -745,25 +745,25 @@ jdouble NativeMapView::getTopOffsetPixelsForAnnotationSymbol(JNIEnv& env, jni::S
 }
 
 jlong NativeMapView::getTransitionDuration(JNIEnv&) {
-    const auto transitionOptions = map->getTransitionOptions();
+    const auto transitionOptions = map->getStyle()->getTransitionOptions();
     return std::chrono::duration_cast<std::chrono::milliseconds>(transitionOptions.duration.value_or(mbgl::Duration::zero())).count();
 }
 
 void NativeMapView::setTransitionDuration(JNIEnv&, jlong duration) {
-    auto transitionOptions = map->getTransitionOptions();
+    auto transitionOptions = map->getStyle()->getTransitionOptions();
     transitionOptions.duration.emplace(mbgl::Milliseconds(duration));
-    map->setTransitionOptions(transitionOptions);
+    map->getStyle()->setTransitionOptions(transitionOptions);
 }
 
 jlong NativeMapView::getTransitionDelay(JNIEnv&) {
-    const auto transitionOptions = map->getTransitionOptions();
+    const auto transitionOptions = map->getStyle()->getTransitionOptions();
     return std::chrono::duration_cast<std::chrono::milliseconds>(transitionOptions.delay.value_or(mbgl::Duration::zero())).count();
 }
 
 void NativeMapView::setTransitionDelay(JNIEnv&, jlong delay) {
-    auto transitionOptions = map->getTransitionOptions();
+    auto transitionOptions = map->getStyle()->getTransitionOptions();
     transitionOptions.delay.emplace(mbgl::Milliseconds(delay));
-    map->setTransitionOptions(transitionOptions);
+    map->getStyle()->setTransitionOptions(transitionOptions);
 }
 
 jni::Array<jlong> NativeMapView::queryPointAnnotations(JNIEnv& env, jni::Object<RectF> rect) {
@@ -832,13 +832,13 @@ jni::Object<Light> NativeMapView::getLight(JNIEnv& env) {
 jni::Array<jni::Object<Layer>> NativeMapView::getLayers(JNIEnv& env) {
 
     // Get the core layers
-    std::vector<style::Layer*> layers = map->getLayers();
+    std::vector<style::Layer*> layers = map->getStyle()->getLayers();
 
     // Convert
     jni::Array<jni::Object<Layer>> jLayers = jni::Array<jni::Object<Layer>>::New(env, layers.size(), Layer::javaClass);
     int index = 0;
     for (auto layer : layers) {
-        auto jLayer = jni::Object<Layer>(createJavaLayerPeer(env, *map, *layer));
+        auto jLayer = jni::Object<Layer>(createJavaLayerPeer(env, *map->getStyle(), *layer));
         jLayers.Set(env, index, jLayer);
         jni::DeleteLocalRef(env, jLayer);
         index++;
@@ -850,14 +850,14 @@ jni::Array<jni::Object<Layer>> NativeMapView::getLayers(JNIEnv& env) {
 jni::Object<Layer> NativeMapView::getLayer(JNIEnv& env, jni::String layerId) {
 
     // Find the layer
-    mbgl::style::Layer* coreLayer = map->getLayer(jni::Make<std::string>(env, layerId));
+    mbgl::style::Layer* coreLayer = map->getStyle()->getLayer(jni::Make<std::string>(env, layerId));
     if (!coreLayer) {
        mbgl::Log::Debug(mbgl::Event::JNI, "No layer found");
        return jni::Object<Layer>();
     }
 
     // Create and return the layer's native peer
-    return jni::Object<Layer>(createJavaLayerPeer(env, *map, *coreLayer));
+    return jni::Object<Layer>(createJavaLayerPeer(env, *map->getStyle(), *coreLayer));
 }
 
 void NativeMapView::addLayer(JNIEnv& env, jlong nativeLayerPtr, jni::String before) {
@@ -865,7 +865,7 @@ void NativeMapView::addLayer(JNIEnv& env, jlong nativeLayerPtr, jni::String befo
 
     Layer *layer = reinterpret_cast<Layer *>(nativeLayerPtr);
     try {
-        layer->addToMap(*map, before ? mbgl::optional<std::string>(jni::Make<std::string>(env, before)) : mbgl::optional<std::string>());
+        layer->addToStyle(*map->getStyle(), before ? mbgl::optional<std::string>(jni::Make<std::string>(env, before)) : mbgl::optional<std::string>());
     } catch (const std::runtime_error& error) {
         jni::ThrowNew(env, jni::FindClass(env, "com/mapbox/mapboxsdk/style/layers/CannotAddLayerException"), error.what());
     }
@@ -877,7 +877,7 @@ void NativeMapView::addLayerAbove(JNIEnv& env, jlong nativeLayerPtr, jni::String
     Layer *layer = reinterpret_cast<Layer *>(nativeLayerPtr);
 
     // Find the sibling
-    auto layers = map->getLayers();
+    auto layers = map->getStyle()->getLayers();
     auto siblingId = jni::Make<std::string>(env, above);
 
     size_t index = 0;
@@ -1003,7 +1003,7 @@ jni::Object<Source> NativeMapView::getSource(JNIEnv& env, jni::String sourceId) 
     }
 
     // Create and return the source's native peer
-    return jni::Object<Source>(createJavaSourcePeer(env, *map, *coreSource));
+    return jni::Object<Source>(createJavaSourcePeer(env, *map->getStyle(), *coreSource));
 }
 
 void NativeMapView::addSource(JNIEnv& env, jni::jlong sourcePtr) {
@@ -1011,7 +1011,7 @@ void NativeMapView::addSource(JNIEnv& env, jni::jlong sourcePtr) {
 
     Source *source = reinterpret_cast<Source *>(sourcePtr);
     try {
-        source->addToMap(*map);
+        source->addToStyle(*map->getStyle());
     } catch (const std::runtime_error& error) {
         jni::ThrowNew(env, jni::FindClass(env, "com/mapbox/mapboxsdk/style/sources/CannotAddSourceException"), error.what());
     }
@@ -1020,7 +1020,7 @@ void NativeMapView::addSource(JNIEnv& env, jni::jlong sourcePtr) {
 jni::Object<Source> NativeMapView::removeSourceById(JNIEnv& env, jni::String id) {
     std::unique_ptr<mbgl::style::Source> coreSource = map->removeSource(jni::Make<std::string>(env, id));
     if (coreSource) {
-        return jni::Object<Source>(createJavaSourcePeer(env, *map, *coreSource));
+        return jni::Object<Source>(createJavaSourcePeer(env, *map->getStyle(), *coreSource));
     } else {
         return jni::Object<Source>();
     }
@@ -1030,7 +1030,7 @@ void NativeMapView::removeSource(JNIEnv&, jlong sourcePtr) {
     assert(sourcePtr != 0);
 
     mbgl::android::Source *source = reinterpret_cast<mbgl::android::Source *>(sourcePtr);
-    std::unique_ptr<mbgl::style::Source> coreSource = map->removeSource(source->get().getID());
+    std::unique_ptr<mbgl::style::Source> coreSource = map->getStyle()->removeSource(source->get().getID());
     if (coreSource) {
         source->setSource(std::move(coreSource));
     }

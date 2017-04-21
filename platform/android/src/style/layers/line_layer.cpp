@@ -11,24 +11,24 @@ namespace mbgl {
 namespace android {
 
     /**
-     * Creates an owning peer object (for layers not attached to the map) from the JVM side
+     * Creates an owning peer object (for layers not attached to the style) from the JVM side
      */
     LineLayer::LineLayer(jni::JNIEnv& env, jni::String layerId, jni::String sourceId)
         : Layer(env, std::make_unique<mbgl::style::LineLayer>(jni::Make<std::string>(env, layerId), jni::Make<std::string>(env, sourceId))) {
     }
 
     /**
-     * Creates a non-owning peer object (for layers currently attached to the map)
+     * Creates a non-owning peer object (for layers currently attached to the style)
      */
-    LineLayer::LineLayer(mbgl::Map& map, mbgl::style::LineLayer& coreLayer)
-        : Layer(map, coreLayer) {
+    LineLayer::LineLayer(mbgl::style::Style& style, mbgl::style::LineLayer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
     /**
-     * Creates an owning peer object (for layers not attached to the map)
+     * Creates an owning peer object (for layers not attached to the style)
      */
-    LineLayer::LineLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::LineLayer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    LineLayer::LineLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::LineLayer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     LineLayer::~LineLayer() = default;

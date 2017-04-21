@@ -18,9 +18,9 @@ public:
 
     CustomLayer(jni::JNIEnv&, jni::String, jni::jlong, jni::jlong, jni::jlong, jni::jlong);
 
-    CustomLayer(mbgl::Map&, mbgl::style::CustomLayer&);
+    CustomLayer(mbgl::style::Style&, mbgl::style::CustomLayer&);
 
-    CustomLayer(mbgl::Map&, std::unique_ptr<mbgl::style::CustomLayer>);
+    CustomLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::CustomLayer>);
 
     ~CustomLayer();
 

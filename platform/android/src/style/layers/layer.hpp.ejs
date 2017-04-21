@@ -29,9 +29,9 @@ public:
     <%- camelize(type) %>Layer(jni::JNIEnv&, jni::String, jni::String);
 <% } -%>
 
-    <%- camelize(type) %>Layer(mbgl::Map&, mbgl::style::<%- camelize(type) %>Layer&);
+    <%- camelize(type) %>Layer(mbgl::style::Style&, mbgl::style::<%- camelize(type) %>Layer&);
 
-    <%- camelize(type) %>Layer(mbgl::Map&, std::unique_ptr<mbgl::style::<%- camelize(type) %>Layer>);
+    <%- camelize(type) %>Layer(mbgl::style::Style&, std::unique_ptr<mbgl::style::<%- camelize(type) %>Layer>);
 
     ~<%- camelize(type) %>Layer();
 

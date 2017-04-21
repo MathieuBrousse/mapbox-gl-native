@@ -14,12 +14,12 @@ namespace {
 namespace mbgl {
 namespace android {
 
-    UnknownLayer::UnknownLayer(mbgl::Map& map, mbgl::style::Layer& coreLayer)
-        : Layer(map, coreLayer) {
+    UnknownLayer::UnknownLayer(mbgl::style::Style& style, mbgl::style::Layer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
-    UnknownLayer::UnknownLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::Layer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    UnknownLayer::UnknownLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::Layer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     jni::Class<UnknownLayer> UnknownLayer::javaClass;

@@ -21,9 +21,9 @@ public:
 
     CircleLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    CircleLayer(mbgl::Map&, mbgl::style::CircleLayer&);
+    CircleLayer(mbgl::style::Style&, mbgl::style::CircleLayer&);
 
-    CircleLayer(mbgl::Map&, std::unique_ptr<mbgl::style::CircleLayer>);
+    CircleLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::CircleLayer>);
 
     ~CircleLayer();
 

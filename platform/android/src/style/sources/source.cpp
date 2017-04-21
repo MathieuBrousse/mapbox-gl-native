@@ -25,7 +25,7 @@ namespace android {
         , source(*ownedSource) {
     }
 
-    Source::Source(mbgl::Map& coreMap, mbgl::style::Source& coreSource) : source(coreSource) , map(&coreMap) {
+    Source::Source(mbgl::style::Style& coreStyle, mbgl::style::Source& coreSource) : source(coreSource) , style(&coreStyle) {
     }
 
     Source::~Source() {
@@ -48,17 +48,17 @@ namespace android {
         return attribution ? jni::Make<jni::String>(env, attribution.value()) : jni::Make<jni::String>(env,"");
     }
 
-    void Source::addToMap(mbgl::Map& _map) {
+    void Source::addToStyle(mbgl::style::Style& _style) {
         // Check to see if we own the source first
         if (!ownedSource) {
             throw std::runtime_error("Cannot add source twice");
         }
 
         // Add source to map
-        _map.addSource(releaseCoreSource());
+        _style.addSource(releaseCoreSource());
 
         // Save pointer to the map
-        this->map = &_map;
+        this->style = &_style;
     }
 
     std::unique_ptr<mbgl::style::Source> Source::releaseCoreSource() {

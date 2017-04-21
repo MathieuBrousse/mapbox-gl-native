@@ -12,8 +12,8 @@ namespace {
 namespace mbgl {
 namespace android {
 
-    UnknownSource::UnknownSource(mbgl::Map& map, mbgl::style::Source& coreSource)
-        : Source(map, coreSource) {
+    UnknownSource::UnknownSource(mbgl::style::Style& style, mbgl::style::Source& coreSource)
+        : Source(style, coreSource) {
     }
 
     jni::Class<UnknownSource> UnknownSource::javaClass;

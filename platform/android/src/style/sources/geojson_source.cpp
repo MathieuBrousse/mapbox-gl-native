@@ -41,8 +41,8 @@ namespace android {
             ) {
     }
 
-    GeoJSONSource::GeoJSONSource(mbgl::Map& map, mbgl::style::GeoJSONSource& coreSource)
-        : Source(map, coreSource) {
+    GeoJSONSource::GeoJSONSource(mbgl::style::Style& style, mbgl::style::GeoJSONSource& coreSource)
+        : Source(style, coreSource) {
     }
 
     GeoJSONSource::~GeoJSONSource() = default;

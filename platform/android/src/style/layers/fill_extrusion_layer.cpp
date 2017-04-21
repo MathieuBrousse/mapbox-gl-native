@@ -11,24 +11,24 @@ namespace mbgl {
 namespace android {
 
     /**
-     * Creates an owning peer object (for layers not attached to the map) from the JVM side
+     * Creates an owning peer object (for layers not attached to the style) from the JVM side
      */
     FillExtrusionLayer::FillExtrusionLayer(jni::JNIEnv& env, jni::String layerId, jni::String sourceId)
         : Layer(env, std::make_unique<mbgl::style::FillExtrusionLayer>(jni::Make<std::string>(env, layerId), jni::Make<std::string>(env, sourceId))) {
     }
 
     /**
-     * Creates a non-owning peer object (for layers currently attached to the map)
+     * Creates a non-owning peer object (for layers currently attached to the style)
      */
-    FillExtrusionLayer::FillExtrusionLayer(mbgl::Map& map, mbgl::style::FillExtrusionLayer& coreLayer)
-        : Layer(map, coreLayer) {
+    FillExtrusionLayer::FillExtrusionLayer(mbgl::style::Style& style, mbgl::style::FillExtrusionLayer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
     /**
-     * Creates an owning peer object (for layers not attached to the map)
+     * Creates an owning peer object (for layers not attached to the style)
      */
-    FillExtrusionLayer::FillExtrusionLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::FillExtrusionLayer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    FillExtrusionLayer::FillExtrusionLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::FillExtrusionLayer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     FillExtrusionLayer::~FillExtrusionLayer() = default;

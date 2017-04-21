@@ -21,9 +21,9 @@ public:
 
     FillLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    FillLayer(mbgl::Map&, mbgl::style::FillLayer&);
+    FillLayer(mbgl::style::Style&, mbgl::style::FillLayer&);
 
-    FillLayer(mbgl::Map&, std::unique_ptr<mbgl::style::FillLayer>);
+    FillLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::FillLayer>);
 
     ~FillLayer();
 

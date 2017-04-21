@@ -21,9 +21,9 @@ public:
 
     FillExtrusionLayer(jni::JNIEnv&, jni::String, jni::String);
 
-    FillExtrusionLayer(mbgl::Map&, mbgl::style::FillExtrusionLayer&);
+    FillExtrusionLayer(mbgl::style::Style&, mbgl::style::FillExtrusionLayer&);
 
-    FillExtrusionLayer(mbgl::Map&, std::unique_ptr<mbgl::style::FillExtrusionLayer>);
+    FillExtrusionLayer(mbgl::style::Style&, std::unique_ptr<mbgl::style::FillExtrusionLayer>);
 
     ~FillExtrusionLayer();
 

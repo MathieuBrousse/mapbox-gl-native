@@ -11,24 +11,24 @@ namespace mbgl {
 namespace android {
 
     /**
-     * Creates an owning peer object (for layers not attached to the map) from the JVM side
+     * Creates an owning peer object (for layers not attached to the style) from the JVM side
      */
     SymbolLayer::SymbolLayer(jni::JNIEnv& env, jni::String layerId, jni::String sourceId)
         : Layer(env, std::make_unique<mbgl::style::SymbolLayer>(jni::Make<std::string>(env, layerId), jni::Make<std::string>(env, sourceId))) {
     }
 
     /**
-     * Creates a non-owning peer object (for layers currently attached to the map)
+     * Creates a non-owning peer object (for layers currently attached to the style)
      */
-    SymbolLayer::SymbolLayer(mbgl::Map& map, mbgl::style::SymbolLayer& coreLayer)
-        : Layer(map, coreLayer) {
+    SymbolLayer::SymbolLayer(mbgl::style::Style& style, mbgl::style::SymbolLayer& coreLayer)
+        : Layer(style, coreLayer) {
     }
 
     /**
-     * Creates an owning peer object (for layers not attached to the map)
+     * Creates an owning peer object (for layers not attached to the style)
      */
-    SymbolLayer::SymbolLayer(mbgl::Map& map, std::unique_ptr<mbgl::style::SymbolLayer> coreLayer)
-        : Layer(map, std::move(coreLayer)) {
+    SymbolLayer::SymbolLayer(mbgl::style::Style& style, std::unique_ptr<mbgl::style::SymbolLayer> coreLayer)
+        : Layer(style, std::move(coreLayer)) {
     }
 
     SymbolLayer::~SymbolLayer() = default;
