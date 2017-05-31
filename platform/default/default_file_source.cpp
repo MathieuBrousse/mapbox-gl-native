@@ -7,7 +7,7 @@
 
 #include <mbgl/util/platform.hpp>
 #include <mbgl/util/url.hpp>
-#include <mbgl/util/thread.hpp>
+#include <mbgl/util/threaded_object.hpp>
 #include <mbgl/util/work_request.hpp>
 
 #include <cassert>
@@ -26,7 +26,7 @@ namespace mbgl {
 
 class DefaultFileSource::Impl {
 public:
-    Impl(std::shared_ptr<FileSource> assetFileSource_, const std::string& cachePath, uint64_t maximumCacheSize)
+    Impl(ActorRef<Impl>, std::shared_ptr<FileSource> assetFileSource_, const std::string& cachePath, uint64_t maximumCacheSize)
             : assetFileSource(assetFileSource_)
             , localFileSource(std::make_unique<LocalFileSource>())
             , offlineDatabase(cachePath, maximumCacheSize) {
@@ -189,8 +189,8 @@ DefaultFileSource::DefaultFileSource(const std::string& cachePath,
                                      std::unique_ptr<FileSource>&& assetFileSource_,
                                      uint64_t maximumCacheSize)
         : assetFileSource(std::move(assetFileSource_))
-        , thread(std::make_unique<util::Thread<Impl>>(util::ThreadContext{"DefaultFileSource", util::ThreadPriority::Low},
-                                                      assetFileSource, cachePath, maximumCacheSize)) {
+        , impl(std::make_unique<util::ThreadedObject<Impl>>("DefaultFileSource", assetFileSource, cachePath, maximumCacheSize))
+        , thread(std::make_unique<ActorRef<Impl>>(impl->actor())) {
 }
 
 DefaultFileSource::~DefaultFileSource() = default;
@@ -239,17 +239,25 @@ void DefaultFileSource::setResourceTransform(std::function<std::string(Resource:
 std::unique_ptr<AsyncRequest> DefaultFileSource::request(const Resource& resource, Callback callback) {
     class DefaultFileRequest : public AsyncRequest {
     public:
-        DefaultFileRequest(Resource resource_, FileSource::Callback callback_, util::Thread<DefaultFileSource::Impl>& thread_)
-            : thread(thread_),
-              workRequest(thread.invokeWithCallback(&DefaultFileSource::Impl::request, this, resource_, callback_)) {
+        DefaultFileRequest(Resource resource_, FileSource::Callback callback_, ActorRef<DefaultFileSource::Impl> fs_)
+            : mailbox(std::make_shared<Mailbox>(*util::RunLoop::Get()))
+            , fs(fs_) {
+            fs.invoke(&DefaultFileSource::Impl::request, this, resource_, [callback_, ref = ActorRef<DefaultFileRequest>(*this, mailbox)](Response res) mutable {
+                ref.invoke(&DefaultFileRequest::runCallback, callback_, res);
+            });
         }
 
         ~DefaultFileRequest() override {
-            thread.invoke(&DefaultFileSource::Impl::cancel, this);
+            fs.invoke(&DefaultFileSource::Impl::cancel, this);
         }
 
-        util::Thread<DefaultFileSource::Impl>& thread;
-        std::unique_ptr<AsyncRequest> workRequest;
+        void runCallback(FileSource::Callback callback_, Response res) {
+            callback_(res);
+        }
+
+    private:
+        std::shared_ptr<Mailbox> mailbox;
+        ActorRef<DefaultFileSource::Impl> fs;
     };
 
     return std::make_unique<DefaultFileRequest>(resource, callback, *thread);
@@ -288,21 +296,21 @@ void DefaultFileSource::getOfflineRegionStatus(OfflineRegion& region, std::funct
 }
 
 void DefaultFileSource::setOfflineMapboxTileCountLimit(uint64_t limit) const {
-    thread->invokeSync(&Impl::setOfflineMapboxTileCountLimit, limit);
+    thread->invoke(&Impl::setOfflineMapboxTileCountLimit, limit);
 }
 
 void DefaultFileSource::pause() {
-    thread->pause();
+    impl->pause();
 }
 
 void DefaultFileSource::resume() {
-    thread->resume();
+    impl->resume();
 }
 
 // For testing only:
 
 void DefaultFileSource::put(const Resource& resource, const Response& response) {
-    thread->invokeSync(&Impl::put, resource, response);
+    thread->invoke(&Impl::put, resource, response);
 }
 
 } // namespace mbgl
