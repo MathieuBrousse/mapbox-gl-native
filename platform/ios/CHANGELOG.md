@@ -2,7 +2,12 @@
 
 Mapbox welcomes participation and contributions from everyone. Please read [CONTRIBUTING.md](../../CONTRIBUTING.md) to get started.
 
-## 3.6.0
+## master
+
+### Styles
+
+* Added suuport for diplaying georeferenced images via the `MGLImageSource`.  [#9110](https://github.com/mapbox/mapbox-gl-native/pull/9\
+110)
 
 ### Packaging
 
