@@ -1,27 +1,25 @@
 package com.mapbox.mapboxsdk.style.sources;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
-import android.graphics.Bitmap;
+import android.support.v4.content.ContextCompat;
 
-import com.mapbox.mapboxsdk.style.layers.Filter;
-import com.mapbox.services.commons.geojson.Feature;
-import com.mapbox.services.commons.geojson.FeatureCollection;
-import com.mapbox.services.commons.geojson.Geometry;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLngQuad;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
  * Image source
- *
- *  * @see <a href="https://www.mapbox.com/mapbox-gl-style-spec/#sources-image">the style specification</a>
+ * <p>
+ * * @see <a href="https://www.mapbox.com/mapbox-gl-style-spec/#sources-image">the style specification</a>
  */
 @UiThread
 public class ImageSource extends Source {
@@ -50,11 +48,11 @@ public class ImageSource extends Source {
    *
    * @param id          The source id
    * @param coordinates The Latitude and Longitude of the four corners of the image
-   * @param url     remote json file
+   * @param url         remote json file
    */
   public ImageSource(String id, LatLngQuad coordinates, URL url) {
     initialize(id, coordinates);
-    nativeSetUrl(url.toExternalForm());
+    setUrl(url);
   }
 
   /**
@@ -66,7 +64,7 @@ public class ImageSource extends Source {
    */
   public ImageSource(String id, LatLngQuad coordinates, @NonNull android.graphics.Bitmap bitmap) {
     initialize(id, coordinates);
-    nativeSetImage(bitmap);
+    setImage(bitmap);
   }
 
   /**
@@ -78,7 +76,7 @@ public class ImageSource extends Source {
    */
   public ImageSource(String id, LatLngQuad coordinates, @DrawableRes int resourceId) {
     initialize(id, coordinates);
-    nativeSetImage()
+    setImage(resourceId);
   }
 
   /**
@@ -104,14 +102,25 @@ public class ImageSource extends Source {
    *
    * @param bitmap A Bitmap image
    */
-  public void setImage(@NonNull android.graphics.Bitmap bitmap) { nativeSetImage(bitmap);}
+  public void setImage(@NonNull android.graphics.Bitmap bitmap) {
+    nativeSetImage(bitmap);
+  }
 
   /**
    * Updates the image url
    *
    * @param resourceId The resource ID of a Bitmap image
    */
-  public void setImage(@DrawableRes int resourceId) { }
+  public void setImage(@DrawableRes int resourceId) {
+    Context context = Mapbox.getApplicationContext();
+    Drawable drawable = ContextCompat.getDrawable(context, resourceId);
+    if (drawable instanceof BitmapDrawable) {
+      BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+      nativeSetImage(bitmapDrawable.getBitmap());
+    } else {
+      throw new IllegalArgumentException("Failed to decode image. The resource provided must be a Bitmap.");
+    }
+  }
 
   /**
    * @return The url or null
@@ -121,11 +130,14 @@ public class ImageSource extends Source {
     return nativeGetUrl();
   }
 
+  protected native void initialize(String layerId, LatLngQuad payload);
 
-  protected native void initialize(String layerId, Object payload);
   protected native void nativeSetUrl(String url);
+
   protected native String nativeGetUrl();
+
   protected native void nativeSetImage(Bitmap bitmap);
+
   @Override
   protected native void finalize() throws Throwable;
 }

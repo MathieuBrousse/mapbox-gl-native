@@ -2,73 +2,65 @@ package com.mapbox.mapboxsdk.geometry;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-
-import com.mapbox.mapboxsdk.exceptions.InvalidLatLngBoundsException;
-import com.mapbox.services.android.telemetry.constants.GeoConstants;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * A geographical area representing a non-aligned rectangle
+ * A geographical area representing a non-aligned quadrilateral
  * <p>
- * This class does not wrap valies to the world bounds
+ * This class does not wrap values to the world bounds
  * </p>
  */
 public class LatLngQuad implements Parcelable {
 
-  private final LatLng mTopLeft;
-  private final LatLng mTopRight;
-  private final LatLng mBottomRight;
-  private final LatLng mBottomLeft;
+  private final LatLng topLeft;
+  private final LatLng topRight;
+  private final LatLng bottomRight;
+  private final LatLng bottomLeft;
 
   /**
    * Construct a new LatLngQuad based on its corners,
    * in order top left, top right, bottom left, bottom right
    */
-  LatLngQuad(final LatLng tl, final LatLng tr, final LatLng br, final LatLng bl) {
-    this.mTopLeft = tl;
-    this.mTopRight = tr;
-    this.mBottomRight = br;
-    this.mBottomLeft = bl;
+  public LatLngQuad(final LatLng topLeft, final LatLng topRight, final LatLng bottomRight, final LatLng bottomLeft) {
+    this.topLeft = topLeft;
+    this.topRight = topRight;
+    this.bottomRight = bottomRight;
+    this.bottomLeft = bottomLeft;
   }
 
   public LatLng getTopLeft() {
-    return this.mTopLeft;
+    return this.topLeft;
   }
 
   public LatLng getTopRight() {
-    return this.mTopRight;
+    return this.topRight;
   }
 
   public LatLng getBottomRight() {
-    return this.mBottomRight;
+    return this.bottomRight;
   }
 
   public LatLng getBottomLeft() {
-    return this.mBottomLeft;
+    return this.bottomLeft;
   }
 
-  public static final Parcelable.Creator<LatLngQuad> CREATOR =
-      new Parcelable.Creator<LatLngQuad>() {
-        @Override
-        public LatLngQuad createFromParcel(final Parcel in) {
-          return readFromParcel(in);
-        }
+  public static final Parcelable.Creator<LatLngQuad> CREATOR = new Parcelable.Creator<LatLngQuad>() {
+    @Override
+    public LatLngQuad createFromParcel(final Parcel in) {
+      return readFromParcel(in);
+    }
 
-        @Override
-        public LatLngQuad[] newArray(final int size) {
-          return new LatLngQuad[size];
-        }
-      };
+    @Override
+    public LatLngQuad[] newArray(final int size) {
+      return new LatLngQuad[size];
+    }
+  };
 
   @Override
   public int hashCode() {
-    int code = mTopLeft.hashCode();
-    code = (code ^ code >>> 31) + mTopRight.hashCode();
-    code = (code ^ code >>> 31) + mBottomRight.hashCode();
-    code = (code ^ code >>> 31) + mBottomLeft.hashCode();
+    int code = topLeft.hashCode();
+    code = (code ^ code >>> 31) + topRight.hashCode();
+    code = (code ^ code >>> 31) + bottomRight.hashCode();
+    code = (code ^ code >>> 31) + bottomLeft.hashCode();
     return code;
   }
 
@@ -79,17 +71,17 @@ public class LatLngQuad implements Parcelable {
 
   @Override
   public void writeToParcel(final Parcel out, final int arg1) {
-    mTopLeft.writeToParcel(out, arg1);
-    mTopRight.writeToParcel(out, arg1);
-    mBottomRight.writeToParcel(out, arg1);
-    mBottomLeft.writeToParcel(out, arg1);
+    topLeft.writeToParcel(out, arg1);
+    topRight.writeToParcel(out, arg1);
+    bottomRight.writeToParcel(out, arg1);
+    bottomLeft.writeToParcel(out, arg1);
   }
 
   private static LatLngQuad readFromParcel(final Parcel in) {
-    final LatLng tl = new LatLng(in);
-    final LatLng tr = new LatLng(in);
-    final LatLng br = new LatLng(in);
-    final LatLng bl = new LatLng(in);
-    return new LatLngQuad(tl, tr, br, bl);
+    final LatLng topLeft = new LatLng(in);
+    final LatLng topRight = new LatLng(in);
+    final LatLng bottomRight = new LatLng(in);
+    final LatLng bottomLeft = new LatLng(in);
+    return new LatLngQuad(topLeft, topRight, bottomRight, bottomLeft);
   }
 }
