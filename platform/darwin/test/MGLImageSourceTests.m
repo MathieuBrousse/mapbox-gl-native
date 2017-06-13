@@ -11,8 +11,8 @@
 
 - (void)testMGLImageSourceWithImageURL {
 
-    MGLCoordinateQuad quad = { { 80, 37}, { 81, 37}, { 81, 39}, { 80, 39}};
-    MGLImageSource *source = [[MGLImageSource alloc] initWithIdentifier:@"source-id" coordinates:quad imageURL: [NSURL URLWithString:@"http://host/image.png"]];
+    MGLCoordinateQuad quad = { { 80, 37}, { 80, 39}, { 81, 39}, { 81, 37}};
+    MGLImageSource *source = [[MGLImageSource alloc] initWithIdentifier:@"source-id" coordinateQuad:quad imageURL: [NSURL URLWithString:@"http://host/image.png"]];
     
     XCTAssertNotNil(source.URL);
     XCTAssertEqualObjects(source.URL.absoluteString, @"http://host/image.png");
@@ -31,8 +31,8 @@
 #endif
     XCTAssertNotNil(image);
 
-    MGLCoordinateQuad quad = { { 80, 37}, { 81, 37}, { 81, 39}, { 80, 39}};
-    MGLImageSource *source = [[MGLImageSource alloc] initWithIdentifier:@"source-id" coordinates:quad image:image];
+    MGLCoordinateQuad quad = { { 80, 37}, { 80, 39}, { 81, 39}, { 81, 37}};
+    MGLImageSource *source = [[MGLImageSource alloc] initWithIdentifier:@"source-id" coordinateQuad:quad image:image];
     
     XCTAssertNotNil(source.image);
     XCTAssertEqualObjects(source.image, image);

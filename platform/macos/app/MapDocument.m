@@ -622,7 +622,7 @@ NS_ARRAY_OF(id <MGLAnnotation>) *MBXFlattenedShapes(NS_ARRAY_OF(id <MGLAnnotatio
     MGLImage *image = [[NSBundle bundleForClass:[self class]] imageForResource:@"southeast_0"];
 
     MGLCoordinateBounds bounds = { {22.551103322318994, -90.24006072802854}, {36.928147474567794, -75.1441643681673} };
-    MGLImageSource *imageSource = [[MGLImageSource alloc] initWithIdentifier:@"radar-source" bounds:bounds image:image];
+    MGLImageSource *imageSource = [[MGLImageSource alloc] initWithIdentifier:@"radar-source" coordinateQuad:MGLCoordinateQuadFromCoordinateBounds(bounds) image:image];
     [self.mapView.style addSource:imageSource];
 
     MGLRasterStyleLayer * imageLayer = [[MGLRasterStyleLayer alloc] initWithIdentifier:@"radar-layer" source:imageSource];
@@ -741,10 +741,11 @@ NS_ARRAY_OF(id <MGLAnnotation>) *MBXFlattenedShapes(NS_ARRAY_OF(id <MGLAnnotatio
     MGLShapeSource *source = [[MGLShapeSource alloc] initWithIdentifier:@"ams" URL:geoJSONURL options:nil];
     [self.mapView.style addSource:source];
 
-    MGLFillStyleLayer *fillLayer = [[MGLFillStyleLayer alloc] initWithIdentifier:@"test" source:source];
-    fillLayer.fillColor = [MGLStyleValue<NSColor *> valueWithRawValue:[NSColor greenColor]];
-    fillLayer.predicate = [NSPredicate predicateWithFormat:@"%K == %@", @"type", @"park"];
-    [self.mapView.style addLayer:fillLayer];
+    MGLCircleStyleLayer *circleLayer = [[MGLCircleStyleLayer alloc] initWithIdentifier:@"test" source:source];
+    circleLayer.circleColor = [MGLStyleValue<NSColor *> valueWithRawValue:[NSColor greenColor]];
+    circleLayer.circleRadius = [MGLStyleValue<NSNumber *> valueWithRawValue:[NSNumber numberWithInteger:40]];
+//    fillLayer.predicate = [NSPredicate predicateWithFormat:@"%K == %@", @"type", @"park"];
+    [self.mapView.style addLayer:circleLayer];
 
     MGLSource *streetsSource = [self.mapView.style sourceWithIdentifier:@"composite"];
     if (streetsSource) {
@@ -766,10 +767,10 @@ NS_ARRAY_OF(id <MGLAnnotation>) *MBXFlattenedShapes(NS_ARRAY_OF(id <MGLAnnotatio
 
     MGLImage *image = [[NSBundle bundleForClass:[self class]] imageForResource:@"RadarImage"];
     MGLCoordinateQuad quad = { {46.437, -80.425},
-      {46.437, -71.516},
+      {37.936, -80.425},
       {37.936, -71.516},
-      {37.936, -80.425} };
-    MGLImageSource *imageSource = [[MGLImageSource alloc] initWithIdentifier:@"radar-source" coordinates:quad image:image];
+      {46.437, -71.516} };
+    MGLImageSource *imageSource = [[MGLImageSource alloc] initWithIdentifier:@"radar-source" coordinateQuad:quad image:image];
     [self.mapView.style addSource:imageSource];
 
     MGLRasterStyleLayer * imageLayer = [[MGLRasterStyleLayer alloc] initWithIdentifier:@"radar-layer" source:imageSource];
