@@ -1,7 +1,7 @@
 #include <mbgl/storage/local_file_source.hpp>
 #include <mbgl/storage/response.hpp>
 #include <mbgl/util/string.hpp>
-#include <mbgl/util/thread.hpp>
+#include <mbgl/util/threaded_object.hpp>
 #include <mbgl/util/url.hpp>
 #include <mbgl/util/util.hpp>
 #include <mbgl/util/io.hpp>
@@ -21,6 +21,8 @@ namespace mbgl {
 
 class LocalFileSource::Impl {
 public:
+    Impl(ActorRef<Impl>) {}
+
     void request(const std::string& url, FileSource::Callback callback) {
         // Cut off the protocol
         std::string path = mbgl::util::percentDecode(url.substr(protocolLength));
@@ -50,13 +52,33 @@ public:
 };
 
 LocalFileSource::LocalFileSource()
-    : thread(std::make_unique<util::Thread<Impl>>(util::ThreadContext{"LocalFileSource", util::ThreadPriority::Low})) {
+    : impl(std::make_unique<util::ThreadedObject<Impl>>("LocalFileSource"))
+    , thread(std::make_unique<ActorRef<Impl>>(impl->actor())) {
 }
 
 LocalFileSource::~LocalFileSource() = default;
 
 std::unique_ptr<AsyncRequest> LocalFileSource::request(const Resource& resource, Callback callback) {
-    return thread->invokeWithCallback(&Impl::request, resource.url, callback);
+    class LocalFileRequest : public AsyncRequest {
+    public:
+        LocalFileRequest(Resource resource_, FileSource::Callback callback_, ActorRef<LocalFileSource::Impl> fs_)
+            : mailbox(std::make_shared<Mailbox>(*util::RunLoop::Get()))
+            , fs(fs_) {
+            fs.invoke(&LocalFileSource::Impl::request, resource_.url, [callback_, ref = ActorRef<LocalFileRequest>(*this, mailbox)](Response res) mutable {
+                ref.invoke(&LocalFileRequest::runCallback, callback_, res);
+            });
+        }
+
+        void runCallback(FileSource::Callback callback_, Response res) {
+            callback_(res);
+        }
+
+    private:
+        std::shared_ptr<Mailbox> mailbox;
+        ActorRef<LocalFileSource::Impl> fs;
+    };
+
+    return std::make_unique<LocalFileRequest>(resource, callback, *thread);
 }
 
 bool LocalFileSource::acceptsURL(const std::string& url) {
