@@ -1,7 +1,7 @@
 #include <mbgl/storage/asset_file_source.hpp>
 #include <mbgl/storage/response.hpp>
 #include <mbgl/util/string.hpp>
-#include <mbgl/util/thread.hpp>
+#include <mbgl/util/threaded_object.hpp>
 #include <mbgl/util/url.hpp>
 #include <mbgl/util/util.hpp>
 #include <mbgl/util/io.hpp>
@@ -14,7 +14,7 @@ namespace mbgl {
 
 class AssetFileSource::Impl {
 public:
-    Impl(std::string root_)
+    Impl(ActorRef<Impl>, std::string root_)
         : root(std::move(root_)) {
     }
 
@@ -56,15 +56,33 @@ private:
 };
 
 AssetFileSource::AssetFileSource(const std::string& root)
-    : thread(std::make_unique<util::Thread<Impl>>(
-        util::ThreadContext{"AssetFileSource", util::ThreadPriority::Low},
-        root)) {
+    : impl(std::make_unique<util::ThreadedObject<Impl>>("AssetFileSource", root))
+    , thread(std::make_unique<ActorRef<Impl>>(impl->actor())) {
 }
 
 AssetFileSource::~AssetFileSource() = default;
 
 std::unique_ptr<AsyncRequest> AssetFileSource::request(const Resource& resource, Callback callback) {
-    return thread->invokeWithCallback(&Impl::request, resource.url, callback);
+    class AssetFileRequest : public AsyncRequest {
+    public:
+        AssetFileRequest(Resource resource_, FileSource::Callback callback_, ActorRef<AssetFileSource::Impl> fs_)
+            : mailbox(std::make_shared<Mailbox>(*util::RunLoop::Get()))
+            , fs(fs_) {
+            fs.invoke(&AssetFileSource::Impl::request, resource_.url, [callback_, ref = ActorRef<AssetFileRequest>(*this, mailbox)](Response res) mutable {
+                ref.invoke(&AssetFileRequest::runCallback, callback_, res);
+            });
+        }
+
+        void runCallback(FileSource::Callback callback_, Response res) {
+            callback_(res);
+        }
+
+    private:
+        std::shared_ptr<Mailbox> mailbox;
+        ActorRef<AssetFileSource::Impl> fs;
+    };
+
+    return std::make_unique<AssetFileRequest>(resource, callback, *thread);
 }
 
 } // namespace mbgl
