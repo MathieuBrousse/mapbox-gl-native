@@ -412,7 +412,7 @@ public class MyLocationView extends View {
      *
      * @param enableGps true if GPS is to be enabled, false if GPS is to be disabled
      */
-    private void toggleGps(boolean enableGps) {
+    public void toggleGps(boolean enableGps) {
         LocationServices locationServices = LocationServices.getLocationServices(getContext());
         if (enableGps) {
             // Set an initial location if one available

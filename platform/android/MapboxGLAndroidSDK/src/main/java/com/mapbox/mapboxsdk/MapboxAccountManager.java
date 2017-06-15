@@ -47,7 +47,7 @@ public class MapboxAccountManager {
             mapboxAccountManager = new MapboxAccountManager(context, accessToken);
 
             //Initialize the event manager
-            MapboxEventManager.getMapboxEventManager().initialize(context, accessToken);
+//            MapboxEventManager.getMapboxEventManager().initialize(context, accessToken);
 
             //Register a receiver to listen for connectivity updates
             ConnectivityReceiver.instance(context);
