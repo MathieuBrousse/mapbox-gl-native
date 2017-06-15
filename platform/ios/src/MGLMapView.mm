@@ -4166,7 +4166,7 @@ public:
 
         self.locationManager.headingFilter = 5.0;
         self.locationManager.delegate = self;
-        [self.locationManager startUpdatingLocation];
+        //[self.locationManager startUpdatingLocation];
 
         if (self.userTrackingMode == MGLUserTrackingModeFollowWithHeading)
         {
@@ -4175,7 +4175,7 @@ public:
     }
     else if ( ! shouldEnableLocationServices && self.locationManager)
     {
-        [self.locationManager stopUpdatingLocation];
+        //[self.locationManager stopUpdatingLocation];
         [self.locationManager stopUpdatingHeading];
         self.locationManager.delegate = nil;
         self.locationManager = nil;
@@ -4314,7 +4314,8 @@ public:
             CLLocation *location = self.userLocation.location;
             if (location && self.userLocationAnnotationView)
             {
-                [self locationManager:self.locationManager didUpdateLocations:@[location] animated:animated];
+                //[self locationManager:self.locationManager didUpdateLocations:@[location] animated:animated];
+                [self defineUserLocation:location];
             }
 
             break;
@@ -4335,7 +4336,8 @@ public:
 
             if (self.userLocationAnnotationView)
             {
-                [self locationManager:self.locationManager didUpdateLocations:@[self.userLocation.location] animated:animated];
+                //[self locationManager:self.locationManager didUpdateLocations:@[self.userLocation.location] animated:animated];
+                [self defineUserLocation:self.userLocation.location];
             }
 
             [self updateHeadingForDeviceOrientation];
@@ -4365,7 +4367,8 @@ public:
         CLLocation *location = self.userLocation.location;
         if (location)
         {
-            [self locationManager:self.locationManager didUpdateLocations:@[location] animated:animated];
+            //[self locationManager:self.locationManager didUpdateLocations:@[location] animated:animated];
+            [self defineUserLocation:location];
         }
     }
 }
@@ -4386,7 +4389,8 @@ public:
             self.userTrackingState = MGLUserTrackingStatePossible;
             if (self.userLocation.location)
             {
-                [self locationManager:self.locationManager didUpdateLocations:@[self.userLocation.location] animated:animated];
+                //[self locationManager:self.locationManager didUpdateLocations:@[self.userLocation.location] animated:animated];
+                [self defineUserLocation:self.userLocation.location];
             }
         }
     }
@@ -4394,13 +4398,15 @@ public:
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
-    [self locationManager:manager didUpdateLocations:locations animated:YES];
+    //[self locationManager:manager didUpdateLocations:locations animated:YES];
 }
 
-- (void)locationManager:(__unused CLLocationManager *)manager didUpdateLocations:(NSArray *)locations animated:(BOOL)animated
+//- (void)locationManager:(__unused CLLocationManager *)manager didUpdateLocations:(NSArray *)locations animated:(BOOL)animated
+- (void)defineUserLocation:(CLLocation *) location
 {
     CLLocation *oldLocation = self.userLocation.location;
-    CLLocation *newLocation = locations.lastObject;
+    //CLLocation *newLocation = locations.lastObject;
+    CLLocation *newLocation = location;
 
     if ( ! _showsUserLocation || ! newLocation || ! CLLocationCoordinate2DIsValid(newLocation.coordinate)) return;
 
@@ -4418,7 +4424,8 @@ public:
         }
     }
 
-    [self didUpdateLocationWithUserTrackingAnimated:animated];
+    //[self didUpdateLocationWithUserTrackingAnimated:animated];
+    [self didUpdateLocationWithUserTrackingAnimated:YES];
 
     NSTimeInterval duration = MGLAnimationDuration;
     if (oldLocation && ! CGPointEqualToPoint(self.userLocationAnnotationView.center, CGPointZero))

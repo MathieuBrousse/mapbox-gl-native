@@ -639,6 +639,10 @@ IB_DESIGNABLE
  */
 - (IBAction)resetPosition;
 
+
+/** Set the user location manually indepently from location returned by GPS */
+- (void)defineUserLocation:(CLLocation *) location;
+
 /**
  The coordinate bounds visible in the receiver’s viewport.
 
