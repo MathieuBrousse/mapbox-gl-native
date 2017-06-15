@@ -2834,7 +2834,7 @@ public class MapView extends FrameLayout {
         setWidgetMargins(logoView, left, top, right, bottom);
     }
 
-    void setLogoEnabled(boolean visible) {
+    public void setLogoEnabled(boolean visible) {
         logoView.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
@@ -2850,7 +2850,7 @@ public class MapView extends FrameLayout {
         setWidgetMargins(attributionsView, left, top, right, bottom);
     }
 
-    void setAttributionEnabled(int visibility) {
+    public void setAttributionEnabled(int visibility) {
         attributionsView.setVisibility(visibility);
     }
 
