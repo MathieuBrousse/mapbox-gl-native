@@ -140,6 +140,7 @@ typedef NS_ENUM(NSInteger, MBXSettingsMiscellaneousRows) {
 {
     if (self == [MBXViewController class])
     {
+        [MGLAccountManager setAccessToken:@"pk.eyJ1IjoiZnJhbmNrdCIsImEiOiJjaWh4ZW83cDQwMDhvdnRrcG82M2Y1aW5uIn0.rMyQtc0lEelnozZ0iu2pqw"];
         [[NSUserDefaults standardUserDefaults] registerDefaults:@{
             @"MBXUserTrackingMode": @(MGLUserTrackingModeNone),
             @"MBXShowsUserLocation": @NO,
@@ -197,6 +198,7 @@ typedef NS_ENUM(NSInteger, MBXSettingsMiscellaneousRows) {
         }
         [self presentViewController:alertController animated:YES completion:nil];
     }
+    self.mapView.showsUserLocation = YES;
 }
 
 - (void)saveState:(__unused NSNotification *)notification
@@ -1587,7 +1589,7 @@ typedef NS_ENUM(NSInteger, MBXSettingsMiscellaneousRows) {
 
 - (IBAction)locateUser:(id)sender
 {
-    MGLUserTrackingMode nextMode;
+    /*MGLUserTrackingMode nextMode;
     NSString *nextAccessibilityValue;
     switch (self.mapView.userTrackingMode) {
         case MGLUserTrackingModeNone:
@@ -1608,7 +1610,9 @@ typedef NS_ENUM(NSInteger, MBXSettingsMiscellaneousRows) {
             break;
     }
     self.mapView.userTrackingMode = nextMode;
-    [sender setAccessibilityValue:nextAccessibilityValue];
+    [sender setAccessibilityValue:nextAccessibilityValue];*/
+    CLLocation *tempLocation = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(47.301259, 5.014191) altitude:6 horizontalAccuracy:2 verticalAccuracy:0 course:0 speed:0 timestamp:[NSDate date]];
+    [self.mapView defineUserLocation:tempLocation];
 }
 
 #pragma mark - Map Delegate
