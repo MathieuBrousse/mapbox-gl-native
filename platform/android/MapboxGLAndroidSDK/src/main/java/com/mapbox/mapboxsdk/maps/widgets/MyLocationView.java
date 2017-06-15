@@ -6,7 +6,6 @@ import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
@@ -60,11 +59,11 @@ public class MyLocationView extends View {
     private long locationUpdateTimestamp;
     private float previousDirection;
 
-    private float accuracy;
-    private Paint accuracyPaint;
+    //private float accuracy;
+    //private Paint accuracyPaint;
 
     private ValueAnimator locationChangeAnimator;
-    private ValueAnimator accuracyAnimator;
+    //private ValueAnimator accuracyAnimator;
     private ValueAnimator directionAnimator;
 
     private ValueAnimator.AnimatorUpdateListener invalidateSelfOnUpdateListener =
@@ -139,7 +138,7 @@ public class MyLocationView extends View {
         matrix = new Matrix();
         camera = new Camera();
         camera.setLocation(0, 0, -1000);
-        accuracyPaint = new Paint();
+        //accuracyPaint = new Paint();
 
         myLocationBehavior = new MyLocationBehaviorFactory().getBehavioralModel(MyLocationTracking.TRACKING_NONE);
         compassListener = new CompassListener(context);
@@ -212,15 +211,15 @@ public class MyLocationView extends View {
     }
 
     public final void setAccuracyTint(@ColorInt int color) {
-        int alpha = accuracyPaint.getAlpha();
-        accuracyPaint.setColor(color);
-        accuracyPaint.setAlpha(alpha);
-        invalidate();
+        //int alpha = accuracyPaint.getAlpha();
+        //accuracyPaint.setColor(color);
+        //accuracyPaint.setAlpha(alpha);
+        //invalidate();
     }
 
     public final void setAccuracyAlpha(@IntRange(from = 0, to = 255) int alpha) {
-        accuracyPaint.setAlpha(alpha);
-        invalidate();
+        //accuracyPaint.setAlpha(alpha);
+        //invalidate();
     }
 
     private void invalidateBounds() {
@@ -249,16 +248,16 @@ public class MyLocationView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (location == null || foregroundBounds == null || backgroundBounds == null || accuracyAnimator == null || screenLocation == null) {
+        if (location == null || foregroundBounds == null || backgroundBounds == null || /*accuracyAnimator == null ||*/ screenLocation == null) {
             // Not ready yet
             return;
         }
 
         final PointF pointF = screenLocation;
-        float metersPerPixel = (float) projection.getMetersPerPixelAtLatitude(location.getLatitude());
-        float accuracyPixels = (Float) accuracyAnimator.getAnimatedValue() / metersPerPixel / 2;
-        float maxRadius = getWidth() / 2;
-        accuracyPixels = accuracyPixels <= maxRadius ? accuracyPixels : maxRadius;
+        //float metersPerPixel = (float) projection.getMetersPerPixelAtLatitude(location.getLatitude());
+        //float accuracyPixels = (Float) accuracyAnimator.getAnimatedValue() / metersPerPixel / 2;
+        //float maxRadius = getWidth() / 2;
+        //accuracyPixels = accuracyPixels <= maxRadius ? accuracyPixels : maxRadius;
 
         // reset
         matrix.reset();
@@ -289,7 +288,7 @@ public class MyLocationView extends View {
         camera.restore();
 
         // draw circle
-        canvas.drawCircle(0, 0, accuracyPixels, accuracyPaint);
+        //canvas.drawCircle(0, 0, accuracyPixels, accuracyPaint);
 
         // draw shadow
         if (backgroundDrawable != null) {
@@ -352,10 +351,10 @@ public class MyLocationView extends View {
             locationChangeAnimator = null;
         }
 
-        if (accuracyAnimator != null) {
+        /*if (accuracyAnimator != null) {
             accuracyAnimator.cancel();
             accuracyAnimator = null;
-        }
+        }*/
 
         if (directionAnimator != null) {
             directionAnimator.cancel();
@@ -659,7 +658,7 @@ public class MyLocationView extends View {
         }
 
         void updateAccuracy(@NonNull Location location) {
-            if (accuracyAnimator != null && accuracyAnimator.isRunning()) {
+            /*if (accuracyAnimator != null && accuracyAnimator.isRunning()) {
                 // use current accuracy as a starting point
                 accuracy = (Float) accuracyAnimator.getAnimatedValue();
                 accuracyAnimator.end();
@@ -668,7 +667,7 @@ public class MyLocationView extends View {
             accuracyAnimator = ValueAnimator.ofFloat(accuracy * 10, location.getAccuracy() * 10);
             accuracyAnimator.setDuration(750);
             accuracyAnimator.start();
-            accuracy = location.getAccuracy();
+            accuracy = location.getAccuracy();*/
         }
 
         abstract void invalidate();
