@@ -78,8 +78,6 @@ import com.mapbox.mapboxsdk.constants.MyLocationTracking;
 import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.exceptions.IconBitmapChangedException;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationListener;
-import com.mapbox.mapboxsdk.location.LocationServices;
 import com.mapbox.mapboxsdk.maps.widgets.CompassView;
 import com.mapbox.mapboxsdk.maps.widgets.MyLocationView;
 import com.mapbox.mapboxsdk.maps.widgets.MyLocationViewSettings;
@@ -131,7 +129,7 @@ public class MapView extends FrameLayout {
     private ImageView logoView;
     private ImageView attributionsView;
     private MyLocationView myLocationView;
-    private LocationListener myLocationListener;
+    //private LocationListener myLocationListener;
 
     private Projection projection;
 
@@ -1663,12 +1661,12 @@ public class MapView extends FrameLayout {
         }
 
         // make sure we don't leak location listener
-        if (myLocationListener != null) {
+        /*if (myLocationListener != null) {
             // cleanup to prevent memory leak
             LocationServices services = LocationServices.getLocationServices(getContext());
             services.removeLocationListener(myLocationListener);
             myLocationListener = null;
-        }
+        }*/
     }
 
     // Called when view is hidden and shown
@@ -2711,7 +2709,7 @@ public class MapView extends FrameLayout {
 
 
      void setOnMyLocationChangeListener(@Nullable final MapboxMap.OnMyLocationChangeListener listener) {
-        if (listener != null) {
+        /*if (listener != null) {
             myLocationListener = new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
@@ -2724,7 +2722,7 @@ public class MapView extends FrameLayout {
         } else {
             LocationServices.getLocationServices(getContext()).removeLocationListener(myLocationListener);
             myLocationListener = null;
-        }
+        }*/
     }
 
     void setMyLocationTrackingMode(@MyLocationTracking.Mode int myLocationTrackingMode) {
