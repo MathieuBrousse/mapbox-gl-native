@@ -94,7 +94,7 @@ private:
 
     // Limit the amount of zooming possible on the map.
     double min_scale = std::pow(2, 0);
-    double max_scale = std::pow(2, 20);
+    double max_scale = std::pow(2, 22);
     double min_pitch = 0.0;
     double max_pitch = util::PITCH_MAX;
 
