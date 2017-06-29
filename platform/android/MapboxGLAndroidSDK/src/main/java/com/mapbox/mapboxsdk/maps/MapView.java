@@ -1622,7 +1622,7 @@ public class MapView extends FrameLayout {
         return direction;
     }
 
-    void setBearing(float bearing) {
+    public void setBearing(float bearing) {
         if (destroyed) {
             return;
         }
