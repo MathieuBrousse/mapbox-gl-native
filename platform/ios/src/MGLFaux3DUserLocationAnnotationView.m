@@ -29,6 +29,19 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
     CLLocationAccuracy _oldHorizontalAccuracy;
     double _oldZoom;
     double _oldPitch;
+    
+    BOOL renderCenterDot;
+}
+
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self == nil) return nil;
+    
+    renderCenterDot = NO;
+    
+    return self;
 }
 
 - (CALayer *)hitTestLayer
@@ -376,57 +389,59 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         [self.layer addSublayer:_haloLayer];
     }
 
-    // background dot (white with black shadow)
-    //
-    /*if ( ! _dotBorderLayer)
-    {
-        _dotBorderLayer = [self circleLayerWithSize:MGLUserLocationAnnotationDotSize];
-        _dotBorderLayer.backgroundColor = [[UIColor whiteColor] CGColor];
-        _dotBorderLayer.shadowColor = [[UIColor blackColor] CGColor];
-        _dotBorderLayer.shadowOpacity = 0.25;
-        _dotBorderLayer.shadowPath = [[UIBezierPath bezierPathWithOvalInRect:_dotBorderLayer.bounds] CGPath];
-
-        if (self.mapView.camera.pitch)
+    if (renderCenterDot) {
+        // background dot (white with black shadow)
+        //
+        if ( ! _dotBorderLayer)
         {
-            [self updateFaux3DEffect];
+            _dotBorderLayer = [self circleLayerWithSize:MGLUserLocationAnnotationDotSize];
+            _dotBorderLayer.backgroundColor = [[UIColor whiteColor] CGColor];
+            _dotBorderLayer.shadowColor = [[UIColor blackColor] CGColor];
+            _dotBorderLayer.shadowOpacity = 0.25;
+            _dotBorderLayer.shadowPath = [[UIBezierPath bezierPathWithOvalInRect:_dotBorderLayer.bounds] CGPath];
+            
+            if (self.mapView.camera.pitch)
+            {
+                [self updateFaux3DEffect];
+            }
+            else
+            {
+                _dotBorderLayer.shadowOffset = CGSizeMake(0, 0);
+                _dotBorderLayer.shadowRadius = 3;
+            }
+            
+            [self.layer addSublayer:_dotBorderLayer];
         }
-        else
+        
+        // inner dot (pulsing, tinted)
+        //
+        if ( ! _dotLayer)
         {
-            _dotBorderLayer.shadowOffset = CGSizeMake(0, 0);
-            _dotBorderLayer.shadowRadius = 3;
+            _dotLayer = [self circleLayerWithSize:MGLUserLocationAnnotationDotSize * 0.75];
+            _dotLayer.backgroundColor = [self.mapView.tintColor CGColor];
+            
+            // set defaults for the animations
+            CAAnimationGroup *animationGroup = [self loopingAnimationGroupWithDuration:1.5];
+            animationGroup.autoreverses = YES;
+            animationGroup.fillMode = kCAFillModeBoth;
+            
+            // scale the dot up and down
+            CABasicAnimation *pulseAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale.xy"];
+            pulseAnimation.fromValue = @0.8;
+            pulseAnimation.toValue = @1;
+            
+            // fade opacity in and out, subtly
+            CABasicAnimation *opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+            opacityAnimation.fromValue = @0.8;
+            opacityAnimation.toValue = @1;
+            
+            animationGroup.animations = @[pulseAnimation, opacityAnimation];
+            
+            [_dotLayer addAnimation:animationGroup forKey:@"animateTransformAndOpacity"];
+            
+            [self.layer addSublayer:_dotLayer];
         }
-
-        [self.layer addSublayer:_dotBorderLayer];
     }
-
-    // inner dot (pulsing, tinted)
-    //
-    if ( ! _dotLayer)
-    {
-        _dotLayer = [self circleLayerWithSize:MGLUserLocationAnnotationDotSize * 0.75];
-        _dotLayer.backgroundColor = [self.mapView.tintColor CGColor];
-
-        // set defaults for the animations
-        CAAnimationGroup *animationGroup = [self loopingAnimationGroupWithDuration:1.5];
-        animationGroup.autoreverses = YES;
-        animationGroup.fillMode = kCAFillModeBoth;
-
-        // scale the dot up and down
-        CABasicAnimation *pulseAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale.xy"];
-        pulseAnimation.fromValue = @0.8;
-        pulseAnimation.toValue = @1;
-
-        // fade opacity in and out, subtly
-        CABasicAnimation *opacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-        opacityAnimation.fromValue = @0.8;
-        opacityAnimation.toValue = @1;
-
-        animationGroup.animations = @[pulseAnimation, opacityAnimation];
-
-        [_dotLayer addAnimation:animationGroup forKey:@"animateTransformAndOpacity"];
-
-        [self.layer addSublayer:_dotLayer];
-    }*/
 
     if (_puckModeActivated)
     {
@@ -528,6 +543,10 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
     [ovalPath closePath];
 
     return ovalPath;
+}
+
+-(void)renderCenterDot:(BOOL)render{
+    renderCenterDot = render;
 }
 
 @end

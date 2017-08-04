@@ -3,5 +3,7 @@
 
 @interface MGLFaux3DUserLocationAnnotationView : MGLUserLocationAnnotationView
 
+-(void)renderCenterDot:(BOOL)render;
+
 @end
 

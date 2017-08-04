@@ -4380,6 +4380,12 @@ public:
     }
 }
 
+- (void)setShowsUserLocationWithCenterDot:(BOOL) showCenterDot{
+    if(self.userLocationAnnotationView && [self.userLocationAnnotationView isKindOfClass:[MGLFaux3DUserLocationAnnotationView class]]){
+        [(MGLFaux3DUserLocationAnnotationView*)self.userLocationAnnotationView renderCenterDot:showCenterDot];
+    }
+}
+
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     //[self locationManager:manager didUpdateLocations:locations animated:YES];

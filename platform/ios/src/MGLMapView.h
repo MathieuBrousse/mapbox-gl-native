@@ -402,6 +402,9 @@ IB_DESIGNABLE
  */
 - (void)setTargetCoordinate:(CLLocationCoordinate2D)targetCoordinate animated:(BOOL)animated;
 
+/** Set the user location annotation to render or not the center dot */
+- (void)setShowsUserLocationWithCenterDot:(BOOL) showCenterDot;
+
 #pragma mark Configuring How the User Interacts with the Map
 
 /**
@@ -630,6 +633,7 @@ IB_DESIGNABLE
 
 /** Set the user location manually indepently from location returned by GPS */
 - (void)defineUserLocation:(CLLocation *) location;
+
 
 /**
  The coordinate bounds visible in the receiver’s viewport.
