@@ -292,7 +292,7 @@ public class MyLocationView extends View {
         canvas.drawCircle(0, 0, accuracyPixels, accuracyPaint);
 
         // draw shadow
-        if (backgroundDrawable != null) {
+       /* if (backgroundDrawable != null) {
             backgroundDrawable.draw(canvas);
         }
 
@@ -303,7 +303,7 @@ public class MyLocationView extends View {
             }
         } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
             foregroundBearingDrawable.draw(canvas);
-        }
+        }*/
     }
 
     public void setTilt(@FloatRange(from = 0, to = 60.0f) double tilt) {
