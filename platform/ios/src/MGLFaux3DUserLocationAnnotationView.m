@@ -51,7 +51,9 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         [self updatePitch];
     }
 
-    _haloLayer.hidden = ! CLLocationCoordinate2DIsValid(self.mapView.userLocation.coordinate) || self.mapView.userLocation.location.horizontalAccuracy > 10;
+    //_haloLayer.hidden = ! CLLocationCoordinate2DIsValid(self.mapView.userLocation.coordinate) || self.mapView.userLocation.location.horizontalAccuracy > 10;
+    
+    _haloLayer.hidden = NO;
 }
 
 - (void)setTintColor:(UIColor *)tintColor
@@ -376,7 +378,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
 
     // background dot (white with black shadow)
     //
-    if ( ! _dotBorderLayer)
+    /*if ( ! _dotBorderLayer)
     {
         _dotBorderLayer = [self circleLayerWithSize:MGLUserLocationAnnotationDotSize];
         _dotBorderLayer.backgroundColor = [[UIColor whiteColor] CGColor];
@@ -424,7 +426,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         [_dotLayer addAnimation:animationGroup forKey:@"animateTransformAndOpacity"];
 
         [self.layer addSublayer:_dotLayer];
-    }
+    }*/
 
     if (_puckModeActivated)
     {
