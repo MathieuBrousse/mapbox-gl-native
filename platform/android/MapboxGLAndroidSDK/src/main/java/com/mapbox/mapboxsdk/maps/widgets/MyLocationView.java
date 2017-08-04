@@ -291,19 +291,21 @@ public class MyLocationView extends View {
         // draw circle
         canvas.drawCircle(0, 0, accuracyPixels, accuracyPaint);
 
-        // draw shadow
-       /* if (backgroundDrawable != null) {
-            backgroundDrawable.draw(canvas);
-        }
-
-        // draw foreground
-        if (myBearingTrackingMode == MyBearingTracking.NONE) {
-            if (foregroundDrawable != null) {
-                foregroundDrawable.draw(canvas);
+        if (mapboxMap.getMyLocationViewSettings().getRenderCenterDot()) {
+            // draw shadow
+            if (backgroundDrawable != null) {
+                backgroundDrawable.draw(canvas);
             }
-        } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
-            foregroundBearingDrawable.draw(canvas);
-        }*/
+
+            // draw foreground
+            if (myBearingTrackingMode == MyBearingTracking.NONE) {
+                if (foregroundDrawable != null) {
+                    foregroundDrawable.draw(canvas);
+                }
+            } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
+                foregroundBearingDrawable.draw(canvas);
+            }
+        }
     }
 
     public void setTilt(@FloatRange(from = 0, to = 60.0f) double tilt) {

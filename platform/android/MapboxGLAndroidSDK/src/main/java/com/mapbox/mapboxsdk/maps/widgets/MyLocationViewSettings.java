@@ -55,6 +55,11 @@ public class MyLocationViewSettings {
 
     private int[] padding = new int[4];
 
+    //
+    // Render user Point or Not
+    //s
+    private boolean renderCenterDot;
+
     /**
      * Creates an instance of MyLocationViewSettings
      *
@@ -256,5 +261,13 @@ public class MyLocationViewSettings {
     public void setAccuracyTintColor(@ColorInt int accuracyTintColor) {
         this.accuracyTintColor = accuracyTintColor;
         myLocationView.setAccuracyTint(accuracyTintColor);
+    }
+
+    public boolean getRenderCenterDot() {
+        return renderCenterDot;
+    }
+
+    public void setRenderCenterDot(boolean renderCenterDot) {
+        this.renderCenterDot = renderCenterDot;
     }
 }
