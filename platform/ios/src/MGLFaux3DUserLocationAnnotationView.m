@@ -442,6 +442,16 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
             [self.layer addSublayer:_dotLayer];
         }
     }
+    else{
+        if (_dotBorderLayer) {
+            [_dotBorderLayer removeFromSuperlayer];
+            _dotBorderLayer = nil;
+        }
+        if (_dotLayer) {
+            [_dotLayer removeFromSuperlayer];
+            _dotLayer = nil;
+        }
+    }
 
     if (_puckModeActivated)
     {
