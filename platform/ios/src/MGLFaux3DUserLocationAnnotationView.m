@@ -311,8 +311,8 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         CGFloat accuracyRingSize = [self calculateAccuracyRingSize];
 
         // only show the accuracy ring if it won't be obscured by the location dot
-        if (accuracyRingSize > MGLUserLocationAnnotationDotSize + 15)
-        {
+        //if (accuracyRingSize > MGLUserLocationAnnotationDotSize + 15)
+        //{
             _accuracyRingLayer.hidden = NO;
 
             // disable implicit animation of the accuracy ring, unless triggered by a change in accuracy
@@ -325,12 +325,12 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
             _accuracyRingLayer.cornerRadius = accuracyRingSize / 2;
 
             // match the halo to the accuracy ring
-            _haloLayer.bounds = _accuracyRingLayer.bounds;
-            _haloLayer.cornerRadius = _accuracyRingLayer.cornerRadius;
-            _haloLayer.shouldRasterize = NO;
+            //_haloLayer.bounds = _accuracyRingLayer.bounds;
+            //_haloLayer.cornerRadius = _accuracyRingLayer.cornerRadius;
+            //_haloLayer.shouldRasterize = NO;
 
             [CATransaction commit];
-        }
+       /* }
         else
         {
             _accuracyRingLayer.hidden = YES;
@@ -339,7 +339,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
             _haloLayer.cornerRadius = MGLUserLocationAnnotationHaloSize / 2.0;
             _haloLayer.shouldRasterize = YES;
             _haloLayer.rasterizationScale = [UIScreen mainScreen].scale;
-        }
+        }*/
 
         // store accuracy and zoom so we're not redrawing unchanged location updates
         _oldHorizontalAccuracy = self.userLocation.location.horizontalAccuracy;
@@ -353,7 +353,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         CGFloat accuracyRingSize = [self calculateAccuracyRingSize];
         _accuracyRingLayer = [self circleLayerWithSize:accuracyRingSize];
         _accuracyRingLayer.backgroundColor = [self.mapView.tintColor CGColor];
-        _accuracyRingLayer.opacity = 0.1;
+        _accuracyRingLayer.opacity = 0.35;
         _accuracyRingLayer.shouldRasterize = NO;
         _accuracyRingLayer.allowsGroupOpacity = NO;
 
@@ -362,7 +362,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
 
     // expanding sonar-like pulse (circular, tinted, fades out)
     //
-    if ( ! _haloLayer)
+    /*if ( ! _haloLayer)
     {
         _haloLayer = [self circleLayerWithSize:MGLUserLocationAnnotationHaloSize];
         _haloLayer.backgroundColor = [self.mapView.tintColor CGColor];
@@ -387,7 +387,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
         [_haloLayer addAnimation:animationGroup forKey:@"animateTransformAndOpacity"];
 
         [self.layer addSublayer:_haloLayer];
-    }
+    }*/
 
     if (renderCenterDot) {
         // background dot (white with black shadow)
@@ -491,7 +491,7 @@ const CGFloat MGLUserLocationAnnotationArrowSize = MGLUserLocationAnnotationPuck
     CGFloat metersPerPoint = [self.mapView metersPerPointAtLatitude:self.userLocation.coordinate.latitude];
     CGFloat pixelRadius = self.userLocation.location.horizontalAccuracy / cos(latitudeRadians) / metersPerPoint;
 
-    return pixelRadius * 2.0;
+    return pixelRadius * 2.0 < 10.0f ? 10.0f : pixelRadius * 2.0;
 }
 
 - (UIImage *)headingIndicatorTintedGradientImage
