@@ -84,6 +84,8 @@ typedef NS_ENUM(NSUInteger, MGLUserTrackingState) {
     MGLUserTrackingStatePossible = 0,
     /// The map view has begun to move to the first reported user location.
     MGLUserTrackingStateBegan,
+    /// The map view begins a significant transition.
+    MGLUserTrackingStateBeginSignificantTransition,
     /// The map view has finished moving to the first reported user location.
     MGLUserTrackingStateChanged,
 };
@@ -111,6 +113,9 @@ const NSUInteger MGLTargetFrameInterval = 1;  // Target FPS will be 60 divided b
 
 /// Tolerance for snapping to true north, measured in degrees in either direction.
 const CLLocationDirection MGLToleranceForSnappingToNorth = 7;
+
+/// Distance threshold to stop the camera while animating.
+const CLLocationDistance MGLDistanceThresholdForCameraPause = 500;
 
 /// Reuse identifier and file name of the default point annotation image.
 static NSString * const MGLDefaultStyleMarkerSymbolName = @"default_marker";
@@ -309,6 +314,8 @@ public:
     /// Center coordinate of the pinch gesture on the previous iteration of the gesture.
     CLLocationCoordinate2D _previousPinchCenterCoordinate;
     NSUInteger _previousPinchNumberOfTouches;
+    
+    CLLocationDistance _distanceFromOldUserLocation;
 
     BOOL _delegateHasAlphasForShapeAnnotations;
     BOOL _delegateHasStrokeColorsForShapeAnnotations;
@@ -525,20 +532,20 @@ public:
     _singleTapGestureRecognizer.delegate = self;
     [self addGestureRecognizer:_singleTapGestureRecognizer];
 
-    _twoFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerTapGesture:)];
-    _twoFingerTap.numberOfTouchesRequired = 2;
-    [_twoFingerTap requireGestureRecognizerToFail:_pinch];
-    [_twoFingerTap requireGestureRecognizerToFail:_rotate];
-    [self addGestureRecognizer:_twoFingerTap];
-
     _twoFingerDrag = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerDragGesture:)];
     _twoFingerDrag.minimumNumberOfTouches = 2;
     _twoFingerDrag.maximumNumberOfTouches = 2;
     _twoFingerDrag.delegate = self;
-    [_twoFingerDrag requireGestureRecognizerToFail:_twoFingerTap];
     [_twoFingerDrag requireGestureRecognizerToFail:_pan];
     [self addGestureRecognizer:_twoFingerDrag];
     _pitchEnabled = YES;
+
+    _twoFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerTapGesture:)];
+    _twoFingerTap.numberOfTouchesRequired = 2;
+    [_twoFingerTap requireGestureRecognizerToFail:_pinch];
+    [_twoFingerTap requireGestureRecognizerToFail:_rotate];
+    [_twoFingerTap requireGestureRecognizerToFail:_twoFingerDrag];
+    [self addGestureRecognizer:_twoFingerTap];
 
     _decelerationRate = MGLMapViewDecelerationRateNormal;
 
@@ -1166,6 +1173,10 @@ public:
 {
     _changeDelimiterSuppressionDepth = 0;
     _mbglMap->setGestureInProgress(false);
+    if (self.userTrackingState == MGLUserTrackingStateBegan)
+    {
+        [self setUserTrackingMode:MGLUserTrackingModeNone animated:NO];
+    }
     _mbglMap->cancelTransitions();
 }
 
@@ -1295,16 +1306,16 @@ public:
             [self.delegate mapView:self shouldChangeFromCamera:oldCamera toCamera:toCamera])
         {
             _mbglMap->setZoom(zoom, mbgl::ScreenCoordinate { centerPoint.x, centerPoint.y });
-        }
-        // The gesture recognizer only reports the gesture’s current center
-        // point, so use the previous center point to anchor the transition.
-        // If the number of touches has changed, the remembered center point is
-        // meaningless.
-        if (self.userTrackingMode == MGLUserTrackingModeNone && pinch.numberOfTouches == _previousPinchNumberOfTouches)
-        {
-            CLLocationCoordinate2D centerCoordinate = _previousPinchCenterCoordinate;
-            _mbglMap->setLatLng(MGLLatLngFromLocationCoordinate2D(centerCoordinate),
-                                mbgl::ScreenCoordinate { centerPoint.x, centerPoint.y });
+            // The gesture recognizer only reports the gesture’s current center
+            // point, so use the previous center point to anchor the transition.
+            // If the number of touches has changed, the remembered center point is
+            // meaningless.
+            if (self.userTrackingMode == MGLUserTrackingModeNone && pinch.numberOfTouches == _previousPinchNumberOfTouches)
+            {
+                CLLocationCoordinate2D centerCoordinate = _previousPinchCenterCoordinate;
+                _mbglMap->setLatLng(MGLLatLngFromLocationCoordinate2D(centerCoordinate),
+                                    mbgl::ScreenCoordinate { centerPoint.x, centerPoint.y });
+            }
         }
         [self cameraIsChanging];
     }
@@ -1671,14 +1682,14 @@ public:
     if ( ! self.isPitchEnabled) return;
 
     _mbglMap->cancelTransitions();
-    MGLMapCamera *oldCamera = self.camera;
 
     if (twoFingerDrag.state == UIGestureRecognizerStateBegan)
     {
         [self trackGestureEvent:MGLEventGesturePitchStart forRecognizer:twoFingerDrag];
         [self notifyGestureDidBegin];
     }
-    else if (twoFingerDrag.state == UIGestureRecognizerStateBegan || twoFingerDrag.state == UIGestureRecognizerStateChanged)
+
+    if (twoFingerDrag.state == UIGestureRecognizerStateBegan || twoFingerDrag.state == UIGestureRecognizerStateChanged)
     {
         CGFloat gestureDistance = CGPoint([twoFingerDrag translationInView:twoFingerDrag.view]).y;
         CGFloat currentPitch = _mbglMap->getPitch();
@@ -1688,6 +1699,7 @@ public:
 
         CGPoint centerPoint = [self anchorPointForGesture:twoFingerDrag];
 
+        MGLMapCamera *oldCamera = self.camera;
         MGLMapCamera *toCamera = [self cameraByTiltingToPitch:pitchNew];
 
         if (![self.delegate respondsToSelector:@selector(mapView:shouldChangeFromCamera:toCamera:)] ||
@@ -4385,6 +4397,7 @@ public:
 {
     CLLocation *oldLocation = self.userLocation.location;
     CLLocation *newLocation = locations.lastObject;
+    _distanceFromOldUserLocation = [newLocation distanceFromLocation:oldLocation];
 
     if ( ! _showsUserLocation || ! newLocation || ! CLLocationCoordinate2DIsValid(newLocation.coordinate)) return;
 
@@ -4478,7 +4491,12 @@ public:
 /// first location update.
 - (void)didUpdateLocationSignificantlyAnimated:(BOOL)animated
 {
-    self.userTrackingState = MGLUserTrackingStateBegan;
+    
+    if (_distanceFromOldUserLocation >= MGLDistanceThresholdForCameraPause) {
+        self.userTrackingState = MGLUserTrackingStateBeginSignificantTransition;
+    } else {
+        self.userTrackingState = MGLUserTrackingStateBegan;
+    }
 
     MGLMapCamera *camera = self.camera;
     camera.centerCoordinate = self.userLocation.location.coordinate;
@@ -4498,7 +4516,8 @@ public:
           peakAltitude:-1
      completionHandler:^{
         MGLMapView *strongSelf = weakSelf;
-        if (strongSelf.userTrackingState == MGLUserTrackingStateBegan)
+        if (strongSelf.userTrackingState == MGLUserTrackingStateBegan ||
+            strongSelf.userTrackingState == MGLDistanceThresholdForCameraPause)
         {
             strongSelf.userTrackingState = MGLUserTrackingStateChanged;
         }
