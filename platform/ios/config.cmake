@@ -23,7 +23,6 @@ macro(mbgl_platform_core)
 
         # Default styles
         PRIVATE platform/default/mbgl/util/default_styles.hpp
-        PRIVATE platform/default/mbgl/util/default_styles.cpp
 
         # Offline
         PRIVATE platform/default/mbgl/storage/offline.cpp
@@ -65,10 +64,12 @@ macro(mbgl_platform_core)
     )
 
     target_add_mason_package(mbgl-core PUBLIC geojson)
+    target_add_mason_package(mbgl-core PUBLIC polylabel)
     target_add_mason_package(mbgl-core PRIVATE icu)
 
     target_compile_options(mbgl-core
         PRIVATE -fobjc-arc
+        PRIVATE -fvisibility=hidden
     )
 
     # TODO: Remove this by converting to ARC

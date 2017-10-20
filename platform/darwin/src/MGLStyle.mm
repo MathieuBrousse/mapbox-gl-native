@@ -21,6 +21,7 @@
 #import "MGLSource.h"
 #import "MGLTileSource_Private.h"
 #import "MGLVectorSource.h"
+#import "MGLVectorSource+MGLAdditions.h"
 #import "MGLRasterSource.h"
 #import "MGLShapeSource.h"
 
@@ -48,11 +49,34 @@
     #import "NSImage+MGLAdditions.h"
 #endif
 
+/**
+ Model class for localization changes.
+ */
+@interface MGLTextLanguage: NSObject
+@property (strong, nonatomic) NSString *originalTextField;
+@property (strong, nonatomic) NSString *updatedTextField;
+
+- (instancetype)initWithTextLanguage:(NSString *)originalTextField updatedTextField:(NSString *)updatedTextField;
+
+@end
+
+@implementation MGLTextLanguage
+- (instancetype)initWithTextLanguage:(NSString *)originalTextField updatedTextField:(NSString *)updatedTextField
+{
+    if (self = [super init]) {
+        _originalTextField = originalTextField;
+        _updatedTextField = updatedTextField;
+    }
+    return self;
+}
+@end
+
 @interface MGLStyle()
 
 @property (nonatomic, readwrite, weak) MGLMapView *mapView;
 @property (readonly, copy, nullable) NSURL *URL;
 @property (nonatomic, readwrite, strong) NS_MUTABLE_DICTIONARY_OF(NSString *, MGLOpenGLStyleLayer *) *openGLLayers;
+@property (nonatomic) NS_MUTABLE_DICTIONARY_OF(NSString *, NS_DICTIONARY_OF(NSObject *, MGLTextLanguage *) *) *localizedLayersByIdentifier;
 
 @end
 
@@ -82,8 +106,6 @@ MGL_DEFINE_STYLE(light, light)
 MGL_DEFINE_STYLE(dark, dark)
 MGL_DEFINE_STYLE(satellite, satellite)
 MGL_DEFINE_STYLE(satelliteStreets, satellite-streets)
-MGL_DEFINE_STYLE(trafficDay, traffic-day)
-MGL_DEFINE_STYLE(trafficNight, traffic-night)
 
 // Make sure all the styles listed in mbgl::util::default_styles::orderedStyles
 // are defined above and also declared in MGLStyle.h.
@@ -110,12 +132,42 @@ static NSURL *MGLStyleURL_emerald;
     return MGLStyleURL_emerald;
 }
 
+// Traffic Day is no longer getting new versions as a default style, so the current version is hard-coded here.
+static NSURL *MGLStyleURL_trafficDay;
++ (NSURL *)trafficDayStyleURL {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        MGLStyleURL_trafficDay = [NSURL URLWithString:@"mapbox://styles/mapbox/traffic-day-v2"];
+    });
+    return MGLStyleURL_trafficDay;
+}
+
++ (NSURL *)trafficDayStyleURLWithVersion:(NSInteger)version {
+    return [NSURL URLWithString:[@"mapbox://styles/mapbox/traffic-day-v" stringByAppendingFormat:@"%li", (long)version]];
+}
+
+// Traffic Night is no longer getting new versions as a default style, so the current version is hard-coded here.
+static NSURL *MGLStyleURL_trafficNight;
++ (NSURL *)trafficNightStyleURL {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        MGLStyleURL_trafficNight = [NSURL URLWithString:@"mapbox://styles/mapbox/traffic-night-v2"];
+    });
+    return MGLStyleURL_trafficNight;
+}
+
++ (NSURL *)trafficNightStyleURLWithVersion:(NSInteger)version {
+    return [NSURL URLWithString:[@"mapbox://styles/mapbox/traffic-night-v" stringByAppendingFormat:@"%li", (long)version]];
+}
+
+
 #pragma mark -
 
 - (instancetype)initWithMapView:(MGLMapView *)mapView {
     if (self = [super init]) {
         _mapView = mapView;
         _openGLLayers = [NSMutableDictionary dictionary];
+        _localizedLayersByIdentifier = [NSMutableDictionary dictionary];
     }
     return self;
 }
@@ -162,6 +214,7 @@ static NSURL *MGLStyleURL_emerald;
 - (MGLSource *)sourceWithIdentifier:(NSString *)identifier
 {
     auto rawSource = self.mapView.mbglMap->getSource(identifier.UTF8String);
+    
     return rawSource ? [self sourceFromMBGLSource:rawSource] : nil;
 }
 
@@ -173,13 +226,13 @@ static NSURL *MGLStyleURL_emerald;
     // TODO: Fill in options specific to the respective source classes
     // https://github.com/mapbox/mapbox-gl-native/issues/6584
     if (auto vectorSource = rawSource->as<mbgl::style::VectorSource>()) {
-        return [[MGLVectorSource alloc] initWithRawSource:vectorSource];
+        return [[MGLVectorSource alloc] initWithRawSource:vectorSource mapView:self.mapView];
     } else if (auto geoJSONSource = rawSource->as<mbgl::style::GeoJSONSource>()) {
-        return [[MGLShapeSource alloc] initWithRawSource:geoJSONSource];
+        return [[MGLShapeSource alloc] initWithRawSource:geoJSONSource mapView:self.mapView];
     } else if (auto rasterSource = rawSource->as<mbgl::style::RasterSource>()) {
-        return [[MGLRasterSource alloc] initWithRawSource:rasterSource];
+        return [[MGLRasterSource alloc] initWithRawSource:rasterSource mapView:self.mapView];
     } else {
-        return [[MGLSource alloc] initWithRawSource:rawSource];
+        return [[MGLSource alloc] initWithRawSource:rawSource mapView:self.mapView];
     }
 }
 
@@ -607,6 +660,117 @@ static NSURL *MGLStyleURL_emerald;
             NSStringFromClass([self class]), (void *)self,
             self.name ? [NSString stringWithFormat:@"\"%@\"", self.name] : self.name,
             self.URL ? [NSString stringWithFormat:@"\"%@\"", self.URL] : self.URL];
+}
+
+#pragma mark Style language preferences
+
+- (void)setLocalizesLabels:(BOOL)localizesLabels
+{
+    if (_localizesLabels != localizesLabels) {
+        _localizesLabels = localizesLabels;
+    } else {
+        return;
+    }
+    
+    if (_localizesLabels) {
+        NSString *preferredLanguage = [MGLVectorSource preferredMapboxStreetsLanguage];
+        NSMutableDictionary *localizedKeysByKeyBySourceIdentifier = [NSMutableDictionary dictionary];
+        for (MGLSymbolStyleLayer *layer in self.layers) {
+            if (![layer isKindOfClass:[MGLSymbolStyleLayer class]]) {
+                continue;
+            }
+            
+            MGLVectorSource *source = (MGLVectorSource *)[self sourceWithIdentifier:layer.sourceIdentifier];
+            if (![source isKindOfClass:[MGLVectorSource class]] || !source.mapboxStreets) {
+                continue;
+            }
+            
+            NSDictionary *localizedKeysByKey = localizedKeysByKeyBySourceIdentifier[layer.sourceIdentifier];
+            if (!localizedKeysByKey) {
+                localizedKeysByKey = localizedKeysByKeyBySourceIdentifier[layer.sourceIdentifier] = [source localizedKeysByKeyForPreferredLanguage:preferredLanguage];
+            }
+            
+            NSString *(^stringByLocalizingString)(NSString *) = ^ NSString * (NSString *string) {
+                NSMutableString *localizedString = string.mutableCopy;
+                [localizedKeysByKey enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSString * _Nonnull localizedKey, BOOL * _Nonnull stop) {
+                    NSAssert([key isKindOfClass:[NSString class]], @"key is not a string");
+                    NSAssert([localizedKey isKindOfClass:[NSString class]], @"localizedKey is not a string");
+                    [localizedString replaceOccurrencesOfString:[NSString stringWithFormat:@"{%@}", key]
+                                                     withString:[NSString stringWithFormat:@"{%@}", localizedKey]
+                                                        options:0
+                                                          range:NSMakeRange(0, localizedString.length)];
+                }];
+                return localizedString;
+            };
+            
+            if ([layer.text isKindOfClass:[MGLConstantStyleValue class]]) {
+                NSString *textField = [(MGLConstantStyleValue<NSString *> *)layer.text rawValue];
+                NSString *localizingString = stringByLocalizingString(textField);
+                if (![textField isEqualToString:localizingString]) {
+                    MGLTextLanguage *textLanguage = [[MGLTextLanguage alloc] initWithTextLanguage:textField
+                                                                                 updatedTextField:localizingString];
+                    [self.localizedLayersByIdentifier setObject:@{ textField : textLanguage } forKey:layer.identifier];
+                    layer.text = [MGLStyleValue<NSString *> valueWithRawValue:localizingString];
+                }
+            }
+            else if ([layer.text isKindOfClass:[MGLCameraStyleFunction class]]) {
+                MGLCameraStyleFunction *function = (MGLCameraStyleFunction<NSString *> *)layer.text;
+                NSMutableDictionary *stops = function.stops.mutableCopy;
+                NSMutableDictionary *cameraStops = [NSMutableDictionary dictionary];
+                [stops enumerateKeysAndObjectsUsingBlock:^(NSNumber *zoomLevel, MGLConstantStyleValue<NSString *> *stop, BOOL *done) {
+                    NSString *textField = stop.rawValue;
+                    NSString *localizingString = stringByLocalizingString(textField);
+                    if (![textField isEqualToString:localizingString]) {
+                        MGLTextLanguage *textLanguage = [[MGLTextLanguage alloc] initWithTextLanguage:textField
+                                                                                     updatedTextField:localizingString];
+                        [cameraStops setObject:textLanguage forKey:zoomLevel];
+                        stops[zoomLevel] = [MGLStyleValue<NSString *> valueWithRawValue:localizingString];
+                    }
+                    
+                }];
+                if (cameraStops.count > 0) {
+                    [self.localizedLayersByIdentifier setObject:cameraStops forKey:layer.identifier];
+                }
+                function.stops = stops;
+                layer.text = function;
+            }
+        }
+    } else {
+        
+        [self.localizedLayersByIdentifier enumerateKeysAndObjectsUsingBlock:^(NSString *identifier, NSDictionary<NSObject *, MGLTextLanguage *> *textFields, BOOL *done) {
+            MGLSymbolStyleLayer *layer = (MGLSymbolStyleLayer *)[self.mapView.style layerWithIdentifier:identifier];
+            
+            if ([layer.text isKindOfClass:[MGLConstantStyleValue class]]) {
+                NSString *textField = [(MGLConstantStyleValue<NSString *> *)layer.text rawValue];
+                [textFields enumerateKeysAndObjectsUsingBlock:^(NSObject *originalLanguage, MGLTextLanguage *textLanguage, BOOL *done) {
+                    if ([textLanguage.updatedTextField isEqualToString:textField]) {
+                        layer.text = [MGLStyleValue<NSString *> valueWithRawValue:textLanguage.originalTextField];
+                    }
+                }];
+
+            }
+            else if ([layer.text isKindOfClass:[MGLCameraStyleFunction class]]) {
+                MGLCameraStyleFunction *function = (MGLCameraStyleFunction<NSString *> *)layer.text;
+                NSMutableDictionary *stops = function.stops.mutableCopy;
+                [textFields enumerateKeysAndObjectsUsingBlock:^(NSObject *zoomKey, MGLTextLanguage *textLanguage, BOOL *done) {
+                    if ([zoomKey isKindOfClass:[NSNumber class]]) {
+                        NSNumber *zoomLevel = (NSNumber*)zoomKey;
+                        MGLConstantStyleValue<NSString *> *stop = [stops objectForKey:zoomLevel];
+                        NSString *textField = stop.rawValue;
+                        if ([textLanguage.updatedTextField isEqualToString:textField]) {
+                            stops[zoomLevel] = [MGLStyleValue<NSString *> valueWithRawValue:textLanguage.originalTextField];
+                        }
+                    }
+                }];
+
+                function.stops = stops;
+                layer.text = function;
+            }
+
+        }];
+
+        self.localizedLayersByIdentifier = [NSMutableDictionary dictionary];
+    }
 }
 
 @end

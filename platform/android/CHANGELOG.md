@@ -2,7 +2,74 @@
 
 Mapbox welcomes participation and contributions from everyone.  If you'd like to do so please see the [`Contributing Guide`](https://github.com/mapbox/mapbox-gl-native/blob/master/CONTRIBUTING.md) first to get started.
 
-## 5.1.0 - TBA
+## 5.1.4
+
+* Russian and Ukrainian localizations [#9945](https://github.com/mapbox/mapbox-gl-native/pull/9945)
+
+## 5.1.3 - August 18, 2017
+
+* Use separate attribute component for line normals [#9753](https://github.com/mapbox/mapbox-gl-native/pull/9753)
+* Track state of initial overlain views margins [#9391](https://github.com/mapbox/mapbox-gl-native/pull/9391)
+* Compability for Samsung devices forcing 3-4 array vector length [#9746](https://github.com/mapbox/mapbox-gl-native/pull/9746)
+* Smallest LatLngBounds when visible region crosses dateline [#9747](https://github.com/mapbox/mapbox-gl-native/pull/9747)
+* Readd ProjectMeters [#9766](https://github.com/mapbox/mapbox-gl-native/pull/9766)
+* Enable location change animation of MyLocationView by default [#9779](https://github.com/mapbox/mapbox-gl-native/pull/9779)
+* Avoid IndexOutOfBoundsException when destroying map object [#9789](https://github.com/mapbox/mapbox-gl-native/pull/9789)
+* MAS 2.2.1 [#9796](https://github.com/mapbox/mapbox-gl-native/pull/9796)
+
+## 5.1.2 - August 2, 2017
+
+* Disable program caching on Ardreno GPU 3xx, 4xx and 5xx [#9625](https://github.com/mapbox/mapbox-gl-native/pull/9625)
+* GeoJSON proguard issue [#9577](https://github.com/mapbox/mapbox-gl-native/pull/9577)
+* Harden click events of shape annotations [#9585](https://github.com/mapbox/mapbox-gl-native/pull/9585)
+* Validate Marker before opening InfoWindow [#9586](https://github.com/mapbox/mapbox-gl-native/pull/9586)
+* Fix added to map check [#9602](https://github.com/mapbox/mapbox-gl-native/pull/9602)
+* Don't query shape annotations if none were added [#9606](https://github.com/mapbox/mapbox-gl-native/pull/9606)
+* Fix compass direction [#9632](https://github.com/mapbox/mapbox-gl-native/pull/9632)
+* Remove preview image integration [#9657](https://github.com/mapbox/mapbox-gl-native/pull/9657)
+* Try/catch initialization of telemetry [#9658](https://github.com/mapbox/mapbox-gl-native/pull/9658)
+* Fix typo OnCameraMoveStartedListener [#9664](https://github.com/mapbox/mapbox-gl-native/pull/9664)
+* Bump MAS dependency to 5.2.0 [#9671](https://github.com/mapbox/mapbox-gl-native/pull/9671)
+
+## 5.1.1 - July 21, 2017
+
+* Rework attribution binding [#9433](https://github.com/mapbox/mapbox-gl-native/pull/9433)
+* BackendScope changes [#9538](https://github.com/mapbox/mapbox-gl-native/pull/9538)
+* Invisible MarkerView performance fix [#9420](https://github.com/mapbox/mapbox-gl-native/pull/9420)
+* Polyline/Polygon click listeners [#9443](https://github.com/mapbox/mapbox-gl-native/pull/9443)
+* Hit test Marker/MarkerViews [#9424](https://github.com/mapbox/mapbox-gl-native/pull/9424)
+* Fine tune fling gesture [#9532](https://github.com/mapbox/mapbox-gl-native/pull/9532)
+* Bump OkHttp 3.8.0, Android 7.x crashes [#9522](https://github.com/mapbox/mapbox-gl-native/pull/9522)
+* MyLocationView tint fix [#9410](https://github.com/mapbox/mapbox-gl-native/pull/9410)
+* VisibleRegion logic [#9428](https://github.com/mapbox/mapbox-gl-native/pull/9428)
+* Validate motion event [#9434](https://github.com/mapbox/mapbox-gl-native/pull/9434)
+* Add French localization [#9545](https://github.com/mapbox/mapbox-gl-native/pull/9545)
+* Fix public.xml [#9525](https://github.com/mapbox/mapbox-gl-native/pull/9525/files)
+* Manage InfoWindow selection in AnnotationManager [#9567](https://github.com/mapbox/mapbox-gl-native/pull/9567)
+* Increase touch target size [#9565](https://github.com/mapbox/mapbox-gl-native/pull/9565)
+* Work around Adreno 2xx GPU bugs [#9573](https://github.com/mapbox/mapbox-gl-native/pull/9573)
+
+## 5.1.0 - June 30, 2017
+
+* Update to MAS 2.1.3 [#9402](https://github.com/mapbox/mapbox-gl-native/pull/9402)
+* Downgrade LOST to v1.1.1 [#9394](https://github.com/mapbox/mapbox-gl-native/pull/9394)
+* OnCameraIdle hook into quickzoom gesture [#9339](https://github.com/mapbox/mapbox-gl-native/pull/9339)
+* LatLngBounds conversion regression, add test [#9324](https://github.com/mapbox/mapbox-gl-native/pull/9324)
+
+## 5.1.0-beta.5 - June 21, 2017
+
+* Update MAS dependency to 2.1.2 [#9311](https://github.com/mapbox/mapbox-gl-native/pull/9311)
+* Update LOST dependency to 3.0.1 [#9302](https://github.com/mapbox/mapbox-gl-native/pull/9302)
+* Fix Pulse example Parcelable creator [#9283](https://github.com/mapbox/mapbox-gl-native/pull/9283)
+* Custom marker view anchoring [#9282](https://github.com/mapbox/mapbox-gl-native/pull/9282)
+* Update Activity test generation [#9276](https://github.com/mapbox/mapbox-gl-native/pull/9276)
+* Validate camera position before transforming [#9275](https://github.com/mapbox/mapbox-gl-native/pull/9275)
+* Revisit javadoc [#9266](https://github.com/mapbox/mapbox-gl-native/pull/9266)
+* Build with NDK 15 [#9263](https://github.com/mapbox/mapbox-gl-native/pull/9263)
+* Snapshot with view content [#9263](https://github.com/mapbox/mapbox-gl-native/pull/9263)
+* Update source changed javadoc [#9243](https://github.com/mapbox/mapbox-gl-native/pull/9243)
+* Run tests on UI-thread [#9198](https://github.com/mapbox/mapbox-gl-native/pull/9198)
+* Fix trackball on worker thread [#9305](https://github.com/mapbox/mapbox-gl-native/pull/9305)
 
 ## 5.1.0-beta.4 - June 9, 2017
 

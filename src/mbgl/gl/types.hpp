@@ -15,7 +15,7 @@ using VertexArrayID = uint32_t;
 using FramebufferID = uint32_t;
 using RenderbufferID = uint32_t;
 
-using AttributeLocation = int32_t;
+using AttributeLocation = uint32_t;
 using UniformLocation = int32_t;
 using TextureUnit = uint8_t;
 
@@ -24,7 +24,7 @@ enum class ShaderType : uint32_t {
     Fragment = 0x8B30
 };
 
-enum class DataType : uint32_t {
+enum class DataType : uint16_t {
     Byte = 0x1400,
     UnsignedByte = 0x1401,
     Short = 0x1402,

@@ -16,7 +16,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -37,8 +36,14 @@ public final class UiSettings {
   private final FocalPointChangeListener focalPointChangeListener;
   private final Projection projection;
   private final CompassView compassView;
+  private final int[] compassMargins = new int[4];
+
   private final ImageView attributionsView;
+  private final int[] attributionsMargins = new int[4];
+
   private final View logoView;
+  private final int[] logoMargins = new int[4];
+
   private float pixelRatio;
 
   private boolean rotateGesturesEnabled = true;
@@ -196,7 +201,7 @@ public final class UiSettings {
     setLogoMargins(resources, options.getLogoMargins());
   }
 
-  private void setLogoMargins(Resources resources, int[]logoMargins) {
+  private void setLogoMargins(Resources resources, int[] logoMargins) {
     if (logoMargins != null) {
       setLogoMargins(logoMargins[0], logoMargins[1], logoMargins[2], logoMargins[3]);
     } else {
@@ -309,8 +314,7 @@ public final class UiSettings {
    * </p>
    * By default, the compass is in the top right corner.
    *
-   * @param gravity One of the values from {@link Gravity}.
-   * @see Gravity
+   * @param gravity Android SDK Gravity.
    */
   @UiThread
   public void setCompassGravity(int gravity) {
@@ -370,7 +374,7 @@ public final class UiSettings {
    */
   @UiThread
   public void setCompassMargins(int left, int top, int right, int bottom) {
-    setWidgetMargins(compassView, left, top, right, bottom);
+    setWidgetMargins(compassView, compassMargins, left, top, right, bottom);
   }
 
   /**
@@ -379,7 +383,7 @@ public final class UiSettings {
    * @return The left margin in pixels
    */
   public int getCompassMarginLeft() {
-    return ((FrameLayout.LayoutParams) compassView.getLayoutParams()).leftMargin;
+    return compassMargins[0];
   }
 
   /**
@@ -388,7 +392,7 @@ public final class UiSettings {
    * @return The top margin in pixels
    */
   public int getCompassMarginTop() {
-    return ((FrameLayout.LayoutParams) compassView.getLayoutParams()).topMargin;
+    return compassMargins[1];
   }
 
   /**
@@ -397,7 +401,7 @@ public final class UiSettings {
    * @return The right margin in pixels
    */
   public int getCompassMarginRight() {
-    return ((FrameLayout.LayoutParams) compassView.getLayoutParams()).rightMargin;
+    return compassMargins[2];
   }
 
   /**
@@ -406,7 +410,7 @@ public final class UiSettings {
    * @return The bottom margin in pixels
    */
   public int getCompassMarginBottom() {
-    return ((FrameLayout.LayoutParams) compassView.getLayoutParams()).bottomMargin;
+    return compassMargins[3];
   }
 
   /**
@@ -423,7 +427,8 @@ public final class UiSettings {
       return;
     }
 
-    compassView.update(cameraPosition.bearing);
+    double clockwiseBearing = -cameraPosition.bearing;
+    compassView.update(clockwiseBearing);
   }
 
   /**
@@ -454,8 +459,7 @@ public final class UiSettings {
    * </p>
    * By default, the logo is in the bottom left corner.
    *
-   * @param gravity One of the values from {@link Gravity}.
-   * @see Gravity
+   * @param gravity Android SDK Gravity.
    */
   public void setLogoGravity(int gravity) {
     setWidgetGravity(logoView, gravity);
@@ -480,7 +484,7 @@ public final class UiSettings {
    * @param bottom The bottom margin in pixels.
    */
   public void setLogoMargins(int left, int top, int right, int bottom) {
-    setWidgetMargins(logoView, left, top, right, bottom);
+    setWidgetMargins(logoView, logoMargins, left, top, right, bottom);
   }
 
   /**
@@ -489,7 +493,7 @@ public final class UiSettings {
    * @return The left margin in pixels
    */
   public int getLogoMarginLeft() {
-    return ((FrameLayout.LayoutParams) logoView.getLayoutParams()).leftMargin;
+    return logoMargins[0];
   }
 
   /**
@@ -498,7 +502,7 @@ public final class UiSettings {
    * @return The top margin in pixels
    */
   public int getLogoMarginTop() {
-    return ((FrameLayout.LayoutParams) logoView.getLayoutParams()).topMargin;
+    return logoMargins[1];
   }
 
   /**
@@ -507,7 +511,7 @@ public final class UiSettings {
    * @return The right margin in pixels
    */
   public int getLogoMarginRight() {
-    return ((FrameLayout.LayoutParams) logoView.getLayoutParams()).rightMargin;
+    return logoMargins[2];
   }
 
   /**
@@ -516,7 +520,7 @@ public final class UiSettings {
    * @return The bottom margin in pixels
    */
   public int getLogoMarginBottom() {
-    return ((FrameLayout.LayoutParams) logoView.getLayoutParams()).bottomMargin;
+    return logoMargins[3];
   }
 
   /**
@@ -546,8 +550,7 @@ public final class UiSettings {
    * </p>
    * By default, the attribution is in the bottom left corner next to the Mapbox logo.
    *
-   * @param gravity One of the values from {@link Gravity}.
-   * @see Gravity
+   * @param gravity Android SDK Gravity.
    */
   public void setAttributionGravity(int gravity) {
     setWidgetGravity(attributionsView, gravity);
@@ -571,7 +574,7 @@ public final class UiSettings {
    * @param bottom The bottom margin in pixels.
    */
   public void setAttributionMargins(int left, int top, int right, int bottom) {
-    setWidgetMargins(attributionsView, left, top, right, bottom);
+    setWidgetMargins(attributionsView, attributionsMargins, left, top, right, bottom);
   }
 
   /**
@@ -598,7 +601,7 @@ public final class UiSettings {
    * @return The left margin in pixels
    */
   public int getAttributionMarginLeft() {
-    return ((FrameLayout.LayoutParams) attributionsView.getLayoutParams()).leftMargin;
+    return attributionsMargins[0];
   }
 
   /**
@@ -607,7 +610,7 @@ public final class UiSettings {
    * @return The top margin in pixels
    */
   public int getAttributionMarginTop() {
-    return ((FrameLayout.LayoutParams) attributionsView.getLayoutParams()).topMargin;
+    return attributionsMargins[1];
   }
 
   /**
@@ -616,7 +619,7 @@ public final class UiSettings {
    * @return The right margin in pixels
    */
   public int getAttributionMarginRight() {
-    return ((FrameLayout.LayoutParams) attributionsView.getLayoutParams()).rightMargin;
+    return attributionsMargins[2];
   }
 
   /**
@@ -625,7 +628,7 @@ public final class UiSettings {
    * @return The bottom margin in pixels
    */
   public int getAttributionMarginBottom() {
-    return ((FrameLayout.LayoutParams) attributionsView.getLayoutParams()).bottomMargin;
+    return attributionsMargins[3];
   }
 
   /**
@@ -929,7 +932,14 @@ public final class UiSettings {
     view.setLayoutParams(layoutParams);
   }
 
-  private void setWidgetMargins(@NonNull final View view, int left, int top, int right, int bottom) {
+  private void setWidgetMargins(@NonNull final View view, int[] initMargins, int left, int top, int right, int bottom) {
+    // keep state of initially set margins
+    initMargins[0] = left;
+    initMargins[1] = top;
+    initMargins[2] = right;
+    initMargins[3] = bottom;
+
+    // convert inital margins with padding
     int[] contentPadding = projection.getContentPadding();
     FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) view.getLayoutParams();
     left += contentPadding[0];

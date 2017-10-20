@@ -45,9 +45,13 @@ import timber.log.Timber;
 
 /**
  * UI element overlaid on a map to show the user's location.
+ * <p>
+ * Use {@link MyLocationViewSettings} to manipulate the state of this view.
+ * </p>
  */
 public class MyLocationView extends View {
 
+  private static final int UNDEFINED_TINT_COLOR = -1;
   private MyLocationBehavior myLocationBehavior;
   private MapboxMap mapboxMap;
 
@@ -71,7 +75,7 @@ public class MyLocationView extends View {
   private ValueAnimator locationChangeAnimator;
   private ValueAnimator accuracyAnimator;
   private ValueAnimator directionAnimator;
-  private boolean locationChangeAnimationEnabled;
+  private boolean locationChangeAnimationEnabled = true;
 
   private ValueAnimator.AnimatorUpdateListener invalidateSelfOnUpdateListener =
     new ValueAnimator.AnimatorUpdateListener() {
@@ -155,6 +159,12 @@ public class MyLocationView extends View {
     this.locationSource = locationSource;
   }
 
+  /**
+   * Set the foreground drawable, for internal use only.
+   *
+   * @param defaultDrawable The drawable shown when showing this view
+   * @param bearingDrawable The drawable shown when tracking of bearing is enabled
+   */
   public final void setForegroundDrawables(Drawable defaultDrawable, Drawable bearingDrawable) {
     if (defaultDrawable == null) {
       return;
@@ -183,20 +193,35 @@ public class MyLocationView extends View {
     invalidateBounds();
   }
 
+  /**
+   * Set the foreground drawable tint, for internal use only.
+   *
+   * @param color The color to tint the drawable with
+   */
   public final void setForegroundDrawableTint(@ColorInt int color) {
-    if (foregroundDrawable != null) {
-      foregroundDrawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-    }
-    if (foregroundBearingDrawable != null) {
-      foregroundBearingDrawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-    }
+    applyDrawableTint(foregroundDrawable, color);
+    applyDrawableTint(foregroundBearingDrawable, color);
     invalidate();
   }
 
+  /**
+   * Set the shadow drawable, for internal use only.
+   *
+   * @param drawable The drawable shown as shadow
+   */
   public final void setShadowDrawable(Drawable drawable) {
     setShadowDrawable(drawable, 0, 0, 0, 0);
   }
 
+  /**
+   * Set the shadow drawable with some additional offset.
+   *
+   * @param drawable The drawable shown as shadow
+   * @param left     The left offset margin
+   * @param top      The top offset margin
+   * @param right    The right offset margin
+   * @param bottom   The bottom offset margin
+   */
   public final void setShadowDrawable(Drawable drawable, int left, int top, int right, int bottom) {
     if (drawable != null) {
       backgroundDrawable = drawable;
@@ -210,14 +235,24 @@ public class MyLocationView extends View {
     invalidateBounds();
   }
 
+  /**
+   * Set the shadow drawable tint color, for internal use only.
+   *
+   * @param color The tint color to apply
+   */
   public final void setShadowDrawableTint(@ColorInt int color) {
     if (backgroundDrawable == null) {
       return;
     }
-    backgroundDrawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+    applyDrawableTint(backgroundDrawable, color);
     invalidate();
   }
 
+  /**
+   * Set the accuracy tint color, for internal use only.
+   *
+   * @param color The tint color to apply
+   */
   public final void setAccuracyTint(@ColorInt int color) {
     int alpha = accuracyPaint.getAlpha();
     accuracyPaint.setColor(color);
@@ -225,6 +260,11 @@ public class MyLocationView extends View {
     invalidate();
   }
 
+  /**
+   * Set the accuracy alpha value, for internal use only.
+   *
+   * @param alpha The alpha accuracy value to apply
+   */
   public final void setAccuracyAlpha(@IntRange(from = 0, to = 255) int alpha) {
     accuracyPaint.setAlpha(alpha);
     invalidate();
@@ -305,15 +345,25 @@ public class MyLocationView extends View {
     }
 
     // draw foreground
-    if (myBearingTrackingMode == MyBearingTracking.NONE || !compassListener.isSensorAvailable()) {
+    if (myBearingTrackingMode == MyBearingTracking.NONE) {
       if (foregroundDrawable != null) {
         foregroundDrawable.draw(canvas);
       }
     } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
-      foregroundBearingDrawable.draw(canvas);
+      if (myBearingTrackingMode == MyBearingTracking.GPS || compassListener.isSensorAvailable()) {
+        foregroundBearingDrawable.draw(canvas);
+      } else {
+        // We are tracking MyBearingTracking.COMPASS, but sensor is not available.
+        foregroundDrawable.draw(canvas);
+      }
     }
   }
 
+  /**
+   * Set the tilt value, for internal use only.
+   *
+   * @param tilt The tilt to apply
+   */
   public void setTilt(@FloatRange(from = 0, to = 60.0f) double tilt) {
     this.tilt = tilt;
     if (myLocationTrackingMode == MyLocationTracking.TRACKING_FOLLOW) {
@@ -322,6 +372,11 @@ public class MyLocationView extends View {
     invalidate();
   }
 
+  /**
+   * Set the bearing value, for internal use only.
+   *
+   * @param bearing The bearing to apply
+   */
   public void setBearing(double bearing) {
     this.bearing = bearing;
     if (myLocationTrackingMode == MyLocationTracking.TRACKING_NONE) {
@@ -335,6 +390,11 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Set the bearing and tilt from a camera position, for internal use only.
+   *
+   * @param position The camera position to extract bearing and tilt from
+   */
   public void setCameraPosition(CameraPosition position) {
     if (position != null) {
       setBearing(position.bearing);
@@ -342,6 +402,9 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Called when the hosting activity is starting, for internal use only.
+   */
   public void onStart() {
     if (myBearingTrackingMode == MyBearingTracking.COMPASS && compassListener.isSensorAvailable()) {
       compassListener.onResume();
@@ -351,6 +414,9 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Called when the hosting activity is stopping, for internal use only.
+   */
   public void onStop() {
     compassListener.onPause();
     toggleGps(false);
@@ -382,6 +448,9 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Update current locationstate.
+   */
   public void update() {
     if (isEnabled()) {
       myLocationBehavior.invalidate();
@@ -396,17 +465,33 @@ public class MyLocationView extends View {
     this.projection = mapboxMap.getProjection();
   }
 
+  /**
+   * Set the enabled state, for internal use only.
+   *
+   * @param enabled The value to set the state to
+   */
   @Override
   public void setEnabled(boolean enabled) {
     setEnabled(enabled, false);
   }
 
+  /**
+   * Set the enabled state, for internal use only.
+   *
+   * @param enabled                The value to set the state to
+   * @param isCustomLocationSource Flag handling for handling user provided custom location source
+   */
   public void setEnabled(boolean enabled, boolean isCustomLocationSource) {
     super.setEnabled(enabled);
     setVisibility(enabled ? View.VISIBLE : View.INVISIBLE);
     toggleGps(enabled, isCustomLocationSource);
   }
 
+  /**
+   * Save the view instance state, for internal use only.
+   *
+   * @return the marshaled representation of the view state
+   */
   @Override
   protected Parcelable onSaveInstanceState() {
     Bundle bundle = new Bundle();
@@ -415,6 +500,11 @@ public class MyLocationView extends View {
     return bundle;
   }
 
+  /**
+   * Restore the view instance state, for internal use only.
+   *
+   * @param state the marshalled representation of the state to restore
+   */
   @Override
   public void onRestoreInstanceState(Parcelable state) {
     if (state instanceof Bundle) {
@@ -430,7 +520,7 @@ public class MyLocationView extends View {
   }
 
   /**
-   * Enabled / Disable GPS location updates along with updating the UI
+   * Enabled / Disable GPS location updates along with updating the UI, for internal use only.
    *
    * @param enableGps true if GPS is to be enabled, false if GPS is to be disabled
    */
@@ -463,10 +553,20 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Get the current location.
+   *
+   * @return the current location
+   */
   public Location getLocation() {
     return location;
   }
 
+  /**
+   * Set the current location, for internal use only.
+   *
+   * @param location The current location
+   */
   public void setLocation(Location location) {
     if (location == null) {
       this.location = null;
@@ -482,10 +582,20 @@ public class MyLocationView extends View {
     }
   }
 
+  /**
+   * Set location change animation enabled, for internal use only.
+   *
+   * @param locationChangeAnimationEnabled True if location changes are animated
+   */
   public void setLocationChangeAnimationEnabled(boolean locationChangeAnimationEnabled) {
     this.locationChangeAnimationEnabled = locationChangeAnimationEnabled;
   }
 
+  /**
+   * Set the bearing tracking mode, for internal use only.
+   *
+   * @param myBearingTrackingMode The bearing tracking mode
+   */
   public void setMyBearingTrackingMode(@MyBearingTracking.Mode int myBearingTrackingMode) {
     this.myBearingTrackingMode = myBearingTrackingMode;
     if (myBearingTrackingMode == MyBearingTracking.COMPASS && compassListener.isSensorAvailable()) {
@@ -502,6 +612,11 @@ public class MyLocationView extends View {
     invalidate();
   }
 
+  /**
+   * Set the location tracking mode, for internla use only.
+   *
+   * @param myLocationTrackingMode The location tracking mode
+   */
   public void setMyLocationTrackingMode(@MyLocationTracking.Mode int myLocationTrackingMode) {
     MyLocationBehaviorFactory factory = new MyLocationBehaviorFactory();
     myLocationBehavior = factory.getBehavioralModel(myLocationTrackingMode);
@@ -522,17 +637,32 @@ public class MyLocationView extends View {
     invalidate();
   }
 
+  /**
+   * Get the location tracking mode, for internal use only.
+   *
+   * @return The location tracking mode
+   */
   @MyLocationTracking.Mode
   public int getMyLocationTrackingMode() {
     return myLocationTrackingMode;
   }
 
 
+  /**
+   * Get the bearing tracking mode, for internal use only.
+   *
+   * @return the bearing tracking mode
+   */
   @MyBearingTracking.Mode
   public int getMyBearingTrackingMode() {
     return myBearingTrackingMode;
   }
 
+  /**
+   * Set the compass bearing value, for internal use only.
+   *
+   * @param bearing The compas bearing value
+   */
   private void setCompass(double bearing) {
     setCompass(bearing, 0 /* no animation */);
   }
@@ -560,14 +690,29 @@ public class MyLocationView extends View {
     directionAnimator.start();
   }
 
+  /**
+   * Get the center of this view in screen coordinates.
+   *
+   * @return the center of the view
+   */
   public PointF getCenter() {
     return new PointF(getCenterX(), getCenterY());
   }
 
+  /**
+   * Get the x value of the center of this view.
+   *
+   * @return the x value of the center of the view
+   */
   private float getCenterX() {
     return (getX() + getMeasuredWidth()) / 2 + contentPaddingX - projectedX;
   }
 
+  /**
+   * Get the y value of the center of this view.
+   *
+   * @return the y value of the center of the view
+   */
   private float getCenterY() {
     return (getY() + getMeasuredHeight()) / 2 + contentPaddingY - projectedY;
   }
@@ -577,11 +722,36 @@ public class MyLocationView extends View {
     contentPaddingY = (padding[1] - padding[3]) / 2;
   }
 
+  /**
+   * Set the location source from which location updates are received, for internal use only.
+   *
+   * @param locationSource The location source to receive updates from
+   */
   public void setLocationSource(LocationEngine locationSource) {
     toggleGps(false);
     this.locationSource = locationSource;
     this.userLocationListener = null;
     setEnabled(isEnabled(), locationSource != null);
+  }
+
+  private void applyDrawableTint(Drawable drawable, @ColorInt int color) {
+    if (color == UNDEFINED_TINT_COLOR) {
+      removeTintColorFilter(drawable);
+    } else {
+      applyTintColorFilter(drawable, color);
+    }
+  }
+
+  private void removeTintColorFilter(Drawable drawable) {
+    if (drawable != null) {
+      drawable.mutate().setColorFilter(null);
+    }
+  }
+
+  private void applyTintColorFilter(Drawable drawable, @ColorInt int color) {
+    if (drawable != null) {
+      drawable.mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+    }
   }
 
   private static class GpsLocationListener implements LocationEngineListener {
@@ -626,9 +796,12 @@ public class MyLocationView extends View {
     private final SensorManager sensorManager;
 
     private Sensor rotationVectorSensor;
-    float[] matrix = new float[9];
-    float[] orientation = new float[3];
+    private float[] matrix = new float[9];
+    private float[] rotationVectorValue;
+    private float[] truncatedRotationVectorValue = new float[4];
 
+    private float[] orientation = new float[3];
+    private boolean reportMissingSensor = true;
     // Compass data
     private long compassUpdateNextTimestamp = 0;
 
@@ -646,7 +819,8 @@ public class MyLocationView extends View {
     }
 
     public boolean isSensorAvailable() {
-      if (rotationVectorSensor == null) {
+      if (rotationVectorSensor == null && reportMissingSensor) {
+        reportMissingSensor = false;
         Timber.e("Sensor.TYPE_ROTATION_VECTOR is missing from this device. Unable to use MyBearingTracking.COMPASS.");
       }
       return rotationVectorSensor != null;
@@ -662,9 +836,8 @@ public class MyLocationView extends View {
       }
 
       if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-
-        // calculate the rotation matrix
-        SensorManager.getRotationMatrixFromVector(matrix, event.values);
+        rotationVectorValue = getRotationVectorFromSensorEvent(event);
+        SensorManager.getRotationMatrixFromVector(matrix, rotationVectorValue);
         SensorManager.getOrientation(matrix, orientation);
 
         magneticHeading = (float) Math.toDegrees(SensorManager.getOrientation(matrix, orientation)[0]);
@@ -678,6 +851,28 @@ public class MyLocationView extends View {
         }
 
         compassUpdateNextTimestamp = currentTime + COMPASS_UPDATE_RATE_MS;
+      }
+    }
+
+    /**
+     * Pulls out the rotation vector from a SensorEvent, with a maximum length
+     * vector of four elements to avoid potential compatibility issues.
+     *
+     * @param event the sensor event
+     * @return the events rotation vector, potentially truncated
+     */
+    @NonNull
+    float[] getRotationVectorFromSensorEvent(@NonNull SensorEvent event) {
+      if (event.values.length > 4) {
+        // On some Samsung devices SensorManager.getRotationMatrixFromVector
+        // appears to throw an exception if rotation vector has length > 4.
+        // For the purposes of this class the first 4 values of the
+        // rotation vector are sufficient (see crbug.com/335298 for details).
+        // Only affects Android 4.3
+        System.arraycopy(event.values, 0, truncatedRotationVectorValue, 0, 4);
+        return truncatedRotationVectorValue;
+      } else {
+        return event.values;
       }
     }
 

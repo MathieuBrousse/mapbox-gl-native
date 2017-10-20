@@ -1,7 +1,5 @@
 package com.mapbox.mapboxsdk.maps;
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PointF;
@@ -27,7 +25,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ZoomButtonsController;
 
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.R;
 import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
 import com.mapbox.mapboxsdk.constants.MapboxConstants;
@@ -98,8 +95,7 @@ public class MapView extends FrameLayout {
 
   private void initialise(@NonNull final Context context, @NonNull final MapboxMapOptions options) {
     if (isInEditMode()) {
-      // in IDE, show preview map
-      LayoutInflater.from(context).inflate(R.layout.mapbox_mapview_preview, this);
+      // in IDE layout editor, just return
       return;
     }
 
@@ -178,14 +174,14 @@ public class MapView extends FrameLayout {
 
   /**
    * <p>
-   * You must call this method from the parent's {@link android.app.Activity#onCreate(Bundle)} or
-   * {@link android.app.Fragment#onCreate(Bundle)}.
+   * You must call this method from the parent's Activity#onCreate(Bundle)} or
+   * Fragment#onCreate(Bundle).
    * </p>
-   * You must set a valid access token with {@link Mapbox#getInstance(Context, String)}) before you call this method
-   * or an exception will be thrown.
+   * You must set a valid access token with {@link com.mapbox.mapboxsdk.Mapbox#getInstance(Context, String)}
+   * before you call this method or an exception will be thrown.
    *
    * @param savedInstanceState Pass in the parent's savedInstanceState.
-   * @see Mapbox#getInstance(Context, String)
+   * @see com.mapbox.mapboxsdk.Mapbox#getInstance(Context, String)
    */
   @UiThread
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -214,12 +210,11 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link android.app.Activity#onSaveInstanceState(Bundle)}
-   * or {@link android.app.Fragment#onSaveInstanceState(Bundle)}.
+   * You must call this method from the parent's Activity#onSaveInstanceState(Bundle)
+   * or Fragment#onSaveInstanceState(Bundle).
    *
    * @param outState Pass in the parent's outState.
    */
-
   @UiThread
   public void onSaveInstanceState(@NonNull Bundle outState) {
     outState.putBoolean(MapboxConstants.STATE_HAS_SAVED_STATE, true);
@@ -227,7 +222,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onStart()} or {@link Fragment#onStart()}
+   * You must call this method from the parent's Activity#onStart() or Fragment#onStart()
    */
   @UiThread
   public void onStart() {
@@ -236,7 +231,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onResume()} or {@link Fragment#onResume()}.
+   * You must call this method from the parent's Activity#onResume() or Fragment#onResume().
    */
   @UiThread
   public void onResume() {
@@ -244,7 +239,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onPause()} or {@link Fragment#onPause()}.
+   * You must call this method from the parent's Activity#onPause() or Fragment#onPause().
    */
   @UiThread
   public void onPause() {
@@ -252,7 +247,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onStop()} or {@link Fragment#onStop()}.
+   * You must call this method from the parent's Activity#onStop() or Fragment#onStop().
    */
   @UiThread
   public void onStop() {
@@ -261,7 +256,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onDestroy()} or {@link Fragment#onDestroy()}.
+   * You must call this method from the parent's Activity#onDestroy() or Fragment#onDestroy().
    */
   @UiThread
   public void onDestroy() {
@@ -325,7 +320,7 @@ public class MapView extends FrameLayout {
   }
 
   /**
-   * You must call this method from the parent's {@link Activity#onLowMemory()} or {@link Fragment#onLowMemory()}.
+   * You must call this method from the parent's Activity#onLowMemory() or Fragment#onLowMemory().
    */
   @UiThread
   public void onLowMemory() {

@@ -60,7 +60,8 @@ void Painter::renderFill(PaintParameters& parameters,
                 segments,
                 bucket.paintPropertyBinders.at(layer.getID()),
                 properties,
-                state.getZoom()
+                state.getZoom(),
+                layer.getID()
             );
         };
 
@@ -88,7 +89,9 @@ void Painter::renderFill(PaintParameters& parameters,
             program.get(properties).draw(
                 context,
                 drawMode,
-                depthModeForSublayer(sublayer, gl::DepthMode::ReadWrite),
+                depthModeForSublayer(sublayer, pass == RenderPass::Opaque
+                    ? gl::DepthMode::ReadWrite
+                    : gl::DepthMode::ReadOnly),
                 stencilModeForClipping(tile.clip),
                 colorModeForRenderPass(),
                 FillProgram::UniformValues {
@@ -104,7 +107,8 @@ void Painter::renderFill(PaintParameters& parameters,
                 segments,
                 bucket.paintPropertyBinders.at(layer.getID()),
                 properties,
-                state.getZoom()
+                state.getZoom(),
+                layer.getID()
             );
         };
 

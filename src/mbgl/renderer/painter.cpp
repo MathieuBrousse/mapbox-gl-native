@@ -278,7 +278,7 @@ void Painter::render(const Style& style, const FrameData& frame_, View& view, Sp
         context.activeTexture = 0;
         context.texture[0] = 0;
 
-        context.vertexArrayObject = 0;
+        context.bindVertexArray = 0;
     }
 }
 
@@ -312,7 +312,7 @@ void Painter::renderPass(PaintParameters& parameters,
             MBGL_DEBUG_GROUP(context, layer.baseImpl.id + " - custom");
 
             // Reset GL state to a known state so the CustomLayer always has a clean slate.
-            context.vertexArrayObject = 0;
+            context.bindVertexArray = 0;
             context.setDepthMode(depthModeForSublayer(0, gl::DepthMode::ReadOnly));
             context.setStencilMode(gl::StencilMode::disabled());
             context.setColorMode(colorModeForRenderPass());
@@ -353,16 +353,23 @@ void Painter::renderPass(PaintParameters& parameters,
             const PaintProperties<>::Evaluated properties{};
 
             parameters.programs.extrusionTexture.draw(
-                context, gl::Triangles(), gl::DepthMode::disabled(), gl::StencilMode::disabled(),
+                context,
+                gl::Triangles(),
+                gl::DepthMode::disabled(),
+                gl::StencilMode::disabled(),
                 colorModeForRenderPass(),
                 ExtrusionTextureProgram::UniformValues{
                     uniforms::u_matrix::Value{ viewportMat }, uniforms::u_world::Value{ size },
                     uniforms::u_image::Value{ 0 },
                     uniforms::u_opacity::Value{ layer.as<RenderFillExtrusionLayer>()
                                                     ->evaluated.get<FillExtrusionOpacity>() } },
-                extrusionTextureVertexBuffer, quadTriangleIndexBuffer, extrusionTextureSegments,
-                ExtrusionTextureProgram::PaintPropertyBinders{ properties, 0 }, properties,
-                state.getZoom());
+                extrusionTextureVertexBuffer,
+                quadTriangleIndexBuffer,
+                extrusionTextureSegments,
+                ExtrusionTextureProgram::PaintPropertyBinders{ properties, 0 },
+                properties,
+                state.getZoom(),
+                layer.getID());
         } else {
             for (auto& tileRef : item.tiles) {
                 auto& tile = tileRef.get();

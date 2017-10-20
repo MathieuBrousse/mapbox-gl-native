@@ -7,6 +7,7 @@
 
 #include <mbgl/programs/attributes.hpp>
 #include <mbgl/programs/uniforms.hpp>
+#include <mbgl/programs/segment.hpp>
 #include <mbgl/shaders/symbol_icon.hpp>
 #include <mbgl/shaders/symbol_sdf.hpp>
 #include <mbgl/util/geometry.hpp>
@@ -107,7 +108,7 @@ public:
                                                     const style::DataDrivenPropertyValue<float>& sizeProperty,
                                                     const float defaultValue);
 
-    virtual SymbolSizeAttributes::Bindings attributeBindings(const PossiblyEvaluatedPropertyValue<float> currentValue) const = 0;
+    virtual SymbolSizeAttributes::Bindings attributeBindings() const = 0;
     virtual void populateVertexVector(const GeometryTileFeature& feature) = 0;
     virtual UniformValues uniformValues(float currentZoom) const = 0;
     virtual void upload(gl::Context&) = 0;
@@ -133,8 +134,6 @@ Range<float> getCoveringStops(Stops s, float lowerZoom, float upperZoom) {
 
 class ConstantSymbolSizeBinder final : public SymbolSizeBinder {
 public:
-    using PropertyValue = variant<float, style::CameraFunction<float>>;
-    
     ConstantSymbolSizeBinder(const float /*tileZoom*/, const float& size, const float /*defaultValue*/)
       : layoutSize(size) {}
     
@@ -157,9 +156,10 @@ public:
         );
     }
     
-    SymbolSizeAttributes::Bindings attributeBindings(const PossiblyEvaluatedPropertyValue<float>) const override {
-        return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::ConstantBinding {{{0, 0, 0}}} };
+    SymbolSizeAttributes::Bindings attributeBindings() const override {
+        return SymbolSizeAttributes::Bindings { {} };
     }
+
     void upload(gl::Context&) override {}
     void populateVertexVector(const GeometryTileFeature&) override {};
     
@@ -211,14 +211,10 @@ public:
           defaultValue(defaultValue_) {
     }
 
-    SymbolSizeAttributes::Bindings attributeBindings(const PossiblyEvaluatedPropertyValue<float> currentValue) const override {
-        if (currentValue.isConstant()) {
-            return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::ConstantBinding {{{0, 0, 0}}} };
-        }
-        
-        return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::variableBinding(*buffer, 0, 1) };
+    SymbolSizeAttributes::Bindings attributeBindings() const override {
+        return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::binding(*buffer, 0, 1) };
     }
-    
+
     void populateVertexVector(const GeometryTileFeature& feature) override {
         const auto sizeVertex = Vertex {
             {{
@@ -268,12 +264,8 @@ public:
             return getCoveringStops(stops, tileZoom, tileZoom + 1); }))
     {}
 
-    SymbolSizeAttributes::Bindings attributeBindings(const PossiblyEvaluatedPropertyValue<float> currentValue) const override {
-        if (currentValue.isConstant()) {
-            return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::ConstantBinding {{{0, 0, 0}}} };
-        }
-        
-        return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::variableBinding(*buffer, 0) };
+    SymbolSizeAttributes::Bindings attributeBindings() const override {
+        return SymbolSizeAttributes::Bindings { SymbolSizeAttributes::Attribute::binding(*buffer, 0) };
     }
     
     void populateVertexVector(const GeometryTileFeature& feature) override {
@@ -361,30 +353,43 @@ public:
               gl::DepthMode depthMode,
               gl::StencilMode stencilMode,
               gl::ColorMode colorMode,
-              UniformValues&& uniformValues,
+              const UniformValues& uniformValues,
               const gl::VertexBuffer<LayoutVertex>& layoutVertexBuffer,
               const SymbolSizeBinder& symbolSizeBinder,
-              const PossiblyEvaluatedPropertyValue<float>& currentSizeValue,
               const gl::IndexBuffer<DrawMode>& indexBuffer,
-              const gl::SegmentVector<Attributes>& segments,
+              const SegmentVector<Attributes>& segments,
               const PaintPropertyBinders& paintPropertyBinders,
               const typename PaintProperties::Evaluated& currentProperties,
-              float currentZoom) {
-        program.draw(
-            context,
-            std::move(drawMode),
-            std::move(depthMode),
-            std::move(stencilMode),
-            std::move(colorMode),
-            uniformValues
-                .concat(symbolSizeBinder.uniformValues(currentZoom))
-                .concat(paintPropertyBinders.uniformValues(currentZoom, currentProperties)),
-            LayoutAttributes::allVariableBindings(layoutVertexBuffer)
-                .concat(symbolSizeBinder.attributeBindings(currentSizeValue))
-                .concat(paintPropertyBinders.attributeBindings(currentProperties)),
-            indexBuffer,
-            segments
-        );
+              float currentZoom,
+              const std::string& layerID) {
+        typename AllUniforms::Values allUniformValues = uniformValues
+            .concat(symbolSizeBinder.uniformValues(currentZoom))
+            .concat(paintPropertyBinders.uniformValues(currentZoom, currentProperties));
+
+        typename Attributes::Bindings allAttributeBindings = LayoutAttributes::bindings(layoutVertexBuffer)
+            .concat(symbolSizeBinder.attributeBindings())
+            .concat(paintPropertyBinders.attributeBindings(currentProperties));
+
+        for (auto& segment : segments) {
+            auto vertexArrayIt = segment.vertexArrays.find(layerID);
+
+            if (vertexArrayIt == segment.vertexArrays.end()) {
+                vertexArrayIt = segment.vertexArrays.emplace(layerID, context.createVertexArray()).first;
+            }
+
+            program.draw(
+                context,
+                std::move(drawMode),
+                std::move(depthMode),
+                std::move(stencilMode),
+                std::move(colorMode),
+                allUniformValues,
+                vertexArrayIt->second,
+                Attributes::offsetBindings(allAttributeBindings, segment.vertexOffset),
+                indexBuffer,
+                segment.indexOffset,
+                segment.indexLength);
+        }
     }
 };
 

@@ -177,8 +177,8 @@ UniqueBuffer Context::createIndexBuffer(const void* data, std::size_t size) {
     BufferID id = 0;
     MBGL_CHECK_ERROR(glGenBuffers(1, &id));
     UniqueBuffer result { std::move(id), { this } };
-    vertexArrayObject = 0;
-    elementBuffer = result;
+    bindVertexArray = 0;
+    globalVertexArrayState.indexBuffer = result;
     MBGL_CHECK_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
     return result;
 }
@@ -203,7 +203,21 @@ bool Context::supportsVertexArrays() const {
 
 #if MBGL_HAS_BINARY_PROGRAMS
 bool Context::supportsProgramBinaries() const {
-    return programBinary && programBinary->programBinary && programBinary->getProgramBinary;
+    if (!programBinary || !programBinary->programBinary || !programBinary->getProgramBinary) {
+        return false;
+    }
+
+    // Blacklist Adreno 3xx, 4xx, and 5xx GPUs due to known bugs:
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=510637
+    // https://chromium.googlesource.com/chromium/src/gpu/+/master/config/gpu_driver_bug_list.json#2316
+    const std::string renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    if (renderer.find("Adreno (TM) 3") != std::string::npos
+     || renderer.find("Adreno (TM) 4") != std::string::npos
+     || renderer.find("Adreno (TM) 5") != std::string::npos) {
+        return false;
+    }
+
+    return true;
 }
 
 optional<std::pair<BinaryProgramFormat, std::string>>
@@ -229,11 +243,17 @@ optional<std::pair<BinaryProgramFormat, std::string>> Context::getBinaryProgram(
 }
 #endif
 
-UniqueVertexArray Context::createVertexArray() {
-    assert(supportsVertexArrays());
-    VertexArrayID id = 0;
-    MBGL_CHECK_ERROR(vertexArray->genVertexArrays(1, &id));
-    return UniqueVertexArray(std::move(id), { this });
+VertexArray Context::createVertexArray() {
+    if (supportsVertexArrays()) {
+        VertexArrayID id = 0;
+        MBGL_CHECK_ERROR(vertexArray->genVertexArrays(1, &id));
+        UniqueVertexArray vao(std::move(id), { this });
+        return { UniqueVertexArrayState(new VertexArrayState(std::move(vao), *this), VertexArrayStateDeleter { true })};
+    } else {
+        // On GL implementations which do not support vertex arrays, attribute bindings are global state.
+        // So return a VertexArray which shares our global state tracking and whose deleter is a no-op.
+        return { UniqueVertexArrayState(&globalVertexArrayState, VertexArrayStateDeleter { false }) };
+    }
 }
 
 UniqueFramebuffer Context::createFramebuffer() {
@@ -502,8 +522,8 @@ void Context::setDirtyState() {
        tex.setDirty();
     }
     vertexBuffer.setDirty();
-    elementBuffer.setDirty();
-    vertexArrayObject.setDirty();
+    bindVertexArray.setDirty();
+    globalVertexArrayState.setDirty();
 }
 
 void Context::clear(optional<mbgl::Color> color,
@@ -558,6 +578,13 @@ void Context::setDrawMode(const TriangleStrip&) {
 void Context::setDepthMode(const DepthMode& depth) {
     if (depth.func == DepthMode::Always && !depth.mask) {
         depthTest = false;
+
+        // Workaround for rendering errors on Adreno 2xx GPUs. Depth-related state should
+        // not matter when the depth test is disabled, but on these GPUs it apparently does.
+        // https://github.com/mapbox/mapbox-gl-native/issues/9164
+        depthFunc = depth.func;
+        depthMask = depth.mask;
+        depthRange = depth.range;
     } else {
         depthTest = true;
         depthFunc = depth.func;
@@ -622,8 +649,8 @@ void Context::performCleanup() {
         for (const auto id : abandonedBuffers) {
             if (vertexBuffer == id) {
                 vertexBuffer.setDirty();
-            } else if (elementBuffer == id) {
-                elementBuffer.setDirty();
+            } else if (globalVertexArrayState.indexBuffer == id) {
+                globalVertexArrayState.indexBuffer.setDirty();
             }
         }
         MBGL_CHECK_ERROR(glDeleteBuffers(int(abandonedBuffers.size()), abandonedBuffers.data()));
@@ -643,8 +670,8 @@ void Context::performCleanup() {
     if (!abandonedVertexArrays.empty()) {
         assert(supportsVertexArrays());
         for (const auto id : abandonedVertexArrays) {
-            if (vertexArrayObject == id) {
-                vertexArrayObject.setDirty();
+            if (bindVertexArray == id) {
+                bindVertexArray.setDirty();
             }
         }
         MBGL_CHECK_ERROR(vertexArray->deleteVertexArrays(int(abandonedVertexArrays.size()),

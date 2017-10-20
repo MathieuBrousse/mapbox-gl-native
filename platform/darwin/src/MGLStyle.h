@@ -32,14 +32,51 @@ NS_ASSUME_NONNULL_BEGIN
 static MGL_EXPORT const NSInteger MGLStyleDefaultVersion = 10;
 
 /**
- The proxy object for the current map style.
-
- MGLStyle provides a set of convenience methods for changing Mapbox
- default styles using `-[MGLMapView styleURL]`.
- <a href="https://www.mapbox.com/maps/">Learn more about Mapbox default styles</a>.
-
- It is also possible to directly manipulate the current map style
- via `-[MGLMapView style]` by updating the style's data sources or layers.
+ An `MGLStyle` object represents the active map style of an `MGLMapView`. A
+ style defines both the map’s content and every aspect of its appearance. Styles
+ can be designed in
+ <a href="https://www.mapbox.com/studio/">Mapbox Studio</a> and hosted on
+ mapbox.com. `MGLStyle` provides methods for inspecting and manipulating a style
+ dynamically, with classes and properties that parallel the style JSON format
+ defined by the
+ <a href="https://www.mapbox.com/mapbox-gl-js/style-spec/">Mapbox Style Specification</a>.
+ 
+ You set a map view’s active style using the `MGLMapView.styleURL` property.
+ `MGLStyle` provides a set of convenience methods that return the URLs of
+ <a href="https://www.mapbox.com/maps/">popular Mapbox-designed styles</a>.
+ Once the `-[MGLMapViewDelegate mapView:didFinishLoadingStyle:]` or
+ `-[MGLMapViewDelegate mapViewDidFinishLoadingMap:]` method is called, signaling
+ that the style has finished loading, you can use the `MGLMapView.style`
+ property to obtain the map view’s `MGLStyle`.
+ 
+ A style primarily consists of the following components:
+ 
+ * _Content sources_ supply content to be shown on the map. Use methods such as
+   `-sourceWithIdentifier:` and `-addSource:` to configure the style’s content
+   sources, which are represented by `MGLSource` objects.
+ * _Style layers_ manage the layout and appearance of content at specific
+   z-indices in the style. Most kinds of style layers display content provided
+   by a content source. Use methods such as `-layerWithIdentifier:` and
+   `-addLayer:` to configure the style’s layers, which are represented by
+   `MGLStyleLayer` objects.
+ * _Style images_ are used as icons and patterns in style layers. Use the
+   `-setImage:forName:` method to register an image as a style image.
+   (Annotations are represented by annotation images rather than style images.
+   To configure an annotation’s appearance, use the
+   `-[MGLMapViewDelegate mapView:imageForAnnotation:]` method.)
+ * The style’s _light_ is the light source affecting any 3D extruded fills.
+   Use the `light` property to configure the style’s light, which is represented
+   by an `MGLLight` object.
+ 
+ The `MGLStyle`, `MGLSource`, `MGLStyleLayer`, and `MGLLight` classes are
+ collectively known as the _runtime styling API_. The active style influences a
+ related API, visible feature querying, which is available through methods such
+ as `-[MGLMapView visibleFeaturesInRect:]`.
+ 
+ Some terminology differs between the Mapbox Style Specification and the various
+ classes associated with `MGLStyle`. Consult the
+ “[Information for Style Authors](../for-style-authors.html)” guide for an
+ overview of these differences.
 
  @note Wait until the map style has finished loading before modifying a map's
     style via any of the `MGLStyle` instance methods below. You can use the
@@ -233,66 +270,38 @@ MGL_EXPORT
 + (NSURL *)satelliteStreetsStyleURLWithVersion:(NSInteger)version;
 
 /**
- Returns the URL to the current version of the
+ Returns the URL to version 2 of the
  <a href="https://www.mapbox.com/blog/live-traffic-maps/">Mapbox Traffic Day</a>
  style.
 
- Traffic Day color-codes roads based on live traffic congestion data. Traffic
- data is currently available in
- <a href="https://www.mapbox.com/api-documentation/pages/traffic-countries.html">these select countries</a>.
-
- @warning The return value may change in a future release of the SDK. If you use
-    any feature that depends on a specific aspect of a default style – for
-    instance, the minimum zoom level that includes roads – use the
-    `-trafficDayStyleURLWithVersion:` method instead. Such details may change
-    significantly from version to version.
  */
-+ (NSURL *)trafficDayStyleURL;
++ (NSURL *)trafficDayStyleURL __attribute__((deprecated("Create an NSURL object with the string “mapbox://styles/mapbox/traffic-day-v2”.")));
 
 /**
  Returns the URL to the given version of the
  <a href="https://www.mapbox.com/blog/live-traffic-maps/">Mapbox Traffic Day</a>
  style as of publication.
-
- Traffic Day color-codes roads based on live traffic congestion data. Traffic
- data is currently available in
- <a href="https://www.mapbox.com/api-documentation/pages/traffic-countries.html">these select countries</a>.
-
+ 
  @param version A specific version of the style.
  */
-+ (NSURL *)trafficDayStyleURLWithVersion:(NSInteger)version;
++ (NSURL *)trafficDayStyleURLWithVersion:(NSInteger)version __attribute__((deprecated("Create an NSURL object with the string “mapbox://styles/mapbox/traffic-day-v2”.")));;
 
 /**
- Returns the URL to the current version of the
+ Returns the URL to the version 2 of the
  <a href="https://www.mapbox.com/blog/live-traffic-maps/">Mapbox Traffic Night</a>
  style.
 
- Traffic Night color-codes roads based on live traffic congestion data and is
- designed to maximize legibility in low-light situations. Traffic data is
- currently available in
- <a href="https://www.mapbox.com/api-documentation/pages/traffic-countries.html">these select countries</a>.
-
- @warning The return value may change in a future release of the SDK. If you use
-    any feature that depends on a specific aspect of a default style – for
-    instance, the minimum zoom level that includes roads – use the
-    `-trafficNightStyleURLWithVersion:` method instead. Such details may change
-    significantly from version to version.
  */
-+ (NSURL *)trafficNightStyleURL;
++ (NSURL *)trafficNightStyleURL __attribute__((deprecated("Create an NSURL object with the string “mapbox://styles/mapbox/traffic-night-v2”.")));
 
 /**
- Returns the URL to the given version of the
+ Returns the URL to to the version 2 of the
  <a href="https://www.mapbox.com/blog/live-traffic-maps/">Mapbox Traffic Night</a>
  style as of publication.
-
- Traffic Night color-codes roads based on live traffic congestion data and is
- designed to maximize legibility in low-light situations. Traffic data is
- currently available in
- <a href="https://www.mapbox.com/api-documentation/pages/traffic-countries.html">these select countries</a>.
-
+ 
  @param version A specific version of the style.
  */
-+ (NSURL *)trafficNightStyleURLWithVersion:(NSInteger)version;
++ (NSURL *)trafficNightStyleURLWithVersion:(NSInteger)version __attribute__((deprecated("Create an NSURL object with the string “mapbox://styles/mapbox/traffic-night-v2”.")));
 
 #pragma mark Accessing Metadata About the Style
 
@@ -572,6 +581,21 @@ MGL_EXPORT
  Provides global light source for the style.
  */
 @property (nonatomic, strong) MGLLight *light;
+
+#pragma mark Localizing Map Content
+
+/**
+ A Boolean value that determines whether the style attempts to localize labels in 
+ the style into the system’s preferred language.
+ 
+ When this property is enabled, the style automatically modifies the text property 
+ of any symbol style layer whose source is the 
+ <a href="https://www.mapbox.com/vector-tiles/mapbox-streets-v7/#overview">Mapbox 
+ Streets source</a>. On iOS, the user can set the system’s preferred language in 
+ Settings, General Settings, Language & Region. On macOS, the user can set the 
+ system’s preferred language in the Language & Region pane of System Preferences.
+ */
+@property (nonatomic) BOOL localizesLabels;
 
 @end
 

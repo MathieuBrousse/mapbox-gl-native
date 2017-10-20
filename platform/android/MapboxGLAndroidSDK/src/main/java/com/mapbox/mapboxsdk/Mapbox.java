@@ -1,6 +1,5 @@
 package com.mapbox.mapboxsdk;
 
-import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -16,11 +15,13 @@ import com.mapbox.services.android.telemetry.MapboxTelemetry;
 import com.mapbox.services.android.telemetry.location.LocationEngine;
 import com.mapbox.services.android.telemetry.location.LocationEnginePriority;
 
+import timber.log.Timber;
+
 /**
- * The entry point of the Mapbox Android SDK.
+ * The entry point to initialize the Mapbox Android SDK.
  * <p>
  * Obtain a reference by calling {@link #getInstance(Context, String)}. Usually this class is configured in
- * {@link Application#onCreate()} and is responsible for the active access token, application context, and
+ * Application#onCreate() and is responsible for the active access token, application context, and
  * connectivity state.
  * </p>
  */
@@ -49,8 +50,14 @@ public final class Mapbox {
       INSTANCE = new Mapbox(appContext, accessToken, new LocationSource(appContext));
       LocationEngine locationEngine = new LocationSource(appContext);
       locationEngine.setPriority(LocationEnginePriority.NO_POWER);
-      MapboxTelemetry.getInstance().initialize(
-        appContext, accessToken, BuildConfig.MAPBOX_EVENTS_USER_AGENT, locationEngine);
+
+      try {
+        MapboxTelemetry.getInstance().initialize(
+          appContext, accessToken, BuildConfig.MAPBOX_EVENTS_USER_AGENT, locationEngine);
+      } catch (Exception exception) {
+        Timber.e(exception, "Unable to instantiate Mapbox telemetry");
+      }
+
       ConnectivityReceiver.instance(appContext);
     }
     return INSTANCE;
@@ -97,6 +104,8 @@ public final class Mapbox {
 
   /**
    * Application context
+   *
+   * @return the application context
    */
   public static Context getApplicationContext() {
     return INSTANCE.context;

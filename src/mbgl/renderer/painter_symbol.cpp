@@ -54,12 +54,12 @@ void Painter::renderSymbol(PaintParameters& parameters,
             std::move(uniformValues),
             *buffers.vertexBuffer,
             *symbolSizeBinder,
-            values_.layoutSize,
             *buffers.indexBuffer,
             buffers.segments,
             binders,
             paintProperties,
-            state.getZoom()
+            state.getZoom(),
+            layer.getID()
         );
     };
 
@@ -157,7 +157,8 @@ void Painter::renderSymbol(PaintParameters& parameters,
             bucket.collisionBox.segments,
             paintAttributeData,
             properties,
-            state.getZoom()
+            state.getZoom(),
+            layer.getID()
         );
     }
 }

@@ -1,0 +1,84 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   '--ignore-scripts' ]
+2 info using npm@3.10.10
+3 info using node@v6.11.0
+4 silly loadCurrentTree Starting
+5 silly install loadCurrentTree
+6 silly install readLocalPackageData
+7 silly install normalizeTree
+8 silly loadCurrentTree Finishing
+9 silly loadIdealTree Starting
+10 silly install loadIdealTree
+11 silly cloneCurrentTree Starting
+12 silly install cloneCurrentTreeToIdealTree
+13 silly cloneCurrentTree Finishing
+14 silly loadShrinkwrap Starting
+15 silly install loadShrinkwrap
+16 silly loadShrinkwrap Finishing
+17 silly loadAllDepsIntoIdealTree Starting
+18 silly install loadAllDepsIntoIdealTree
+19 silly loadAllDepsIntoIdealTree Finishing
+20 silly loadIdealTree Finishing
+21 silly currentTree official-mapbox-gl-native
+22 silly idealTree official-mapbox-gl-native
+23 silly generateActionsToTake Starting
+24 silly install generateActionsToTake
+25 silly generateActionsToTake Finishing
+26 silly diffTrees action count 0
+27 silly decomposeActions action count 0
+28 silly runTopLevelLifecycles Starting
+29 silly install runPreinstallTopLevelLifecycles
+30 silly preinstall official-mapbox-gl-native /Users/mathieubrousse/Documents/workspace/GEOLYS/official-mapbox-gl-native/official-mapbox-gl-native-dbc66598
+31 info lifecycle undefined~preinstall: undefined
+32 info lifecycle undefined~preinstall: ignored because ignore-scripts is set to true undefined
+33 silly lifecycle undefined~preinstall: no script for preinstall, continuing
+34 silly executeActions Starting
+35 silly install executeActions
+36 silly doSerial global-install 0
+37 silly doParallel fetch 0
+38 verbose correctMkdir /Users/mathieubrousse/.npm/_locks correctMkdir not in flight; initializing
+39 verbose makeDirectory /Users/mathieubrousse/.npm/_locks creation not in flight; initializing
+40 silly makeDirectory /Users/mathieubrousse/.npm/_locks uid: 501 gid: 20
+41 silly rollbackFailedOptional Starting
+42 silly rollbackFailedOptional Finishing
+43 silly runTopLevelLifecycles Finishing
+44 silly install printInstalled
+45 warn Invalid name: "@mapbox/mapbox-gl-native"
+46 verbose If you need help, you may report this error at:
+46 verbose     <https://github.com/npm/npm/issues>
+47 warn official-mapbox-gl-native No description
+48 verbose If you need help, you may report this error at:
+48 verbose     <https://github.com/npm/npm/issues>
+49 warn official-mapbox-gl-native No repository field.
+50 verbose If you need help, you may report this error at:
+50 verbose     <https://github.com/npm/npm/issues>
+51 warn official-mapbox-gl-native No README data
+52 verbose If you need help, you may report this error at:
+52 verbose     <https://github.com/npm/npm/issues>
+53 warn official-mapbox-gl-native No license field.
+54 verbose If you need help, you may report this error at:
+54 verbose     <https://github.com/npm/npm/issues>
+55 verbose stack Error: EACCES: permission denied, mkdir '/Users/mathieubrousse/.npm/_locks'
+55 verbose stack     at Error (native)
+56 verbose cwd /Users/mathieubrousse/Documents/workspace/GEOLYS/official-mapbox-gl-native
+57 error Darwin 16.7.0
+58 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "install" "--ignore-scripts"
+59 error node v6.11.0
+60 error npm  v3.10.10
+61 error path /Users/mathieubrousse/.npm/_locks
+62 error code EACCES
+63 error errno -13
+64 error syscall mkdir
+65 error Error: EACCES: permission denied, mkdir '/Users/mathieubrousse/.npm/_locks'
+65 error     at Error (native)
+65 error  { Error: EACCES: permission denied, mkdir '/Users/mathieubrousse/.npm/_locks'
+65 error     at Error (native)
+65 error   errno: -13,
+65 error   code: 'EACCES',
+65 error   syscall: 'mkdir',
+65 error   path: '/Users/mathieubrousse/.npm/_locks' }
+66 error Please try running this command again as root/Administrator.
+67 verbose exit [ -13, true ]
