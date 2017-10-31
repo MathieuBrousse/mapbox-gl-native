@@ -61,6 +61,11 @@ public class MyLocationViewSettings {
 
   private int[] padding = new int[4];
 
+  //
+  //  Render Center Dot
+  //
+  private boolean renderCenterDot;
+
   /**
    * Creates an instance of MyLocationViewSettings
    * <p>
@@ -292,5 +297,13 @@ public class MyLocationViewSettings {
     } else {
       focalPointChangeListener.onFocalPointChanged(null);
     }
+  }
+
+  public boolean getRenderCenterDot() {
+    return renderCenterDot;
+  }
+
+  public void setRenderCenterDot(boolean renderCenterDot) {
+    this.renderCenterDot = renderCenterDot;
   }
 }
