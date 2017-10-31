@@ -81,6 +81,11 @@ public class MapView extends FrameLayout {
   private MapKeyListener mapKeyListener;
   private MapZoomButtonController mapZoomButtonController;
 
+  //Geolys UI modifications
+  private ImageView logoView;
+  private ImageView attributionsView;
+  private MyLocationView myLocationView;
+
   @UiThread
   public MapView(@NonNull Context context) {
     super(context);
@@ -115,9 +120,13 @@ public class MapView extends FrameLayout {
     // inflate view
     View view = LayoutInflater.from(context).inflate(R.layout.mapbox_mapview_internal, this);
     CompassView compassView = (CompassView) view.findViewById(R.id.compassView);
-    MyLocationView myLocationView = (MyLocationView) view.findViewById(R.id.userLocationView);
-    ImageView attrView = (ImageView) view.findViewById(R.id.attributionView);
+    myLocationView = (MyLocationView) view.findViewById(R.id.userLocationView);
+    attributionsView = (ImageView) view.findViewById(R.id.attributionView);
+    logoView = (ImageView) view.findViewById(R.id.logoView);
     initalizeDrawingSurface(context, options);
+
+    // Geolys : init view
+
 
     // add accessibility support
     setContentDescription(context.getString(R.string.mapbox_mapActionDescription));
@@ -136,7 +145,7 @@ public class MapView extends FrameLayout {
 
     // setup components for MapboxMap creation
     Projection proj = new Projection(nativeMapView);
-    UiSettings uiSettings = new UiSettings(proj, focalPoint, compassView, attrView, view.findViewById(R.id.logoView));
+    UiSettings uiSettings = new UiSettings(proj, focalPoint, compassView, attributionsView, view.findViewById(R.id.logoView));
     TrackingSettings trackingSettings = new TrackingSettings(myLocationView, uiSettings, focalPoint, zoomInvalidator);
     MyLocationViewSettings myLocationViewSettings = new MyLocationViewSettings(myLocationView, proj, focalPoint);
     MarkerViewManager markerViewManager = new MarkerViewManager((ViewGroup) findViewById(R.id.markerViewContainer));
@@ -155,7 +164,7 @@ public class MapView extends FrameLayout {
     // inject widgets with MapboxMap
     compassView.setMapboxMap(mapboxMap);
     myLocationView.setMapboxMap(mapboxMap);
-    attrView.setOnClickListener(new AttributionOnClickListener(context, transform));
+    attributionsView.setOnClickListener(new AttributionOnClickListener(context, transform));
 
     // Ensure this view is interactable
     setClickable(true);
@@ -1047,5 +1056,17 @@ public class MapView extends FrameLayout {
     void addOnMapReadyCallback(OnMapReadyCallback callback) {
       onMapReadyCallbackList.add(callback);
     }
+  }
+
+
+  //
+  //  Geolys Modifications
+  //
+  public void setLogoEnabled(boolean visible) {
+    logoView.setVisibility(visible ? View.VISIBLE : View.GONE);
+  }
+
+  public void setAttributionEnabled(boolean visible) {
+    attributionsView.setVisibility(visible ? View.VISIBLE : View.GONE);
   }
 }

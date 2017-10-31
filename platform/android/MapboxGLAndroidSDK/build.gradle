@@ -77,3 +77,9 @@ configurations {
 apply from: 'gradle-javadoc.gradle'
 apply from: 'gradle-publish.gradle'
 apply from: 'gradle-checkstyle.gradle'
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+}
