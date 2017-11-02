@@ -3,6 +3,7 @@ package com.mapbox.mapboxsdk.annotations;
 import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.constants.MapboxConstants;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -361,6 +362,9 @@ public class MarkerView extends Marker {
    */
   @Override
   public Icon getIcon() {
+    if (markerViewIcon == null) {
+      setIcon(IconFactory.getInstance(Mapbox.getApplicationContext()).defaultMarkerView());
+    }
     return markerViewIcon;
   }
 
@@ -387,6 +391,15 @@ public class MarkerView extends Marker {
 
       markerViewManager = mapboxMap.getMarkerViewManager();
     }
+  }
+
+  /**
+   * Invalidates the MarkerView resulting in remeasuring the View.
+   */
+  void invalidate() {
+    width = height = 0;
+    offsetX = offsetY = MapboxConstants.UNMEASURED;
+    markerViewManager.invalidateViewMarkersInVisibleRegion();
   }
 
   /**

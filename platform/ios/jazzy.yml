@@ -19,10 +19,11 @@ custom_categories:
     children:
       - Adding Points to a Map
       - Runtime Styling
-      - Data-Driven Styling
+      - Using Style Functions at Runtime
       - Working with Mapbox Studio
       - Working with GeoJSON Data
       - For Style Authors
+      - Tile URL Templates
       - Info.plist Keys
       - Gesture Recognizers
   - name: Maps
@@ -59,6 +60,7 @@ custom_categories:
     children:
       - MGLStyle
       - MGLStyleValue
+      - MGLLight
   - name: Style Primitives
     children:
       - MGLFeature
@@ -85,6 +87,7 @@ custom_categories:
       - MGLVectorStyleLayer
       - MGLCircleStyleLayer
       - MGLFillStyleLayer
+      - MGLFillExtrusionStyleLayer
       - MGLLineStyleLayer
       - MGLSymbolStyleLayer
   - name: Offline Maps

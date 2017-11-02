@@ -3,8 +3,9 @@
 #include <mbgl/util/feature.hpp>
 #include <mbgl/util/noncopyable.hpp>
 #include <mbgl/util/optional.hpp>
+#include <mbgl/util/range.hpp>
+#include <mbgl/util/any.hpp>
 #include <mbgl/style/types.hpp>
-#include <mbgl/style/query.hpp>
 
 #include <memory>
 #include <string>
@@ -49,18 +50,16 @@ public:
     }
 
     const std::string& getID() const;
-
-    // Create a new source with the specified `id`. All other properties
-    // are copied from this source.
-    std::unique_ptr<Source> copy(const std::string& id) const;
-
     optional<std::string> getAttribution() const;
-    
-    std::vector<Feature> querySourceFeatures(const SourceQueryOptions& options = {});
 
     // Private implementation
     class Impl;
     const std::unique_ptr<Impl> baseImpl;
+
+    // For use in SDK bindings, which store a reference to a platform-native peer
+    // object here, so that separately-obtained references to this object share
+    // identical platform-native peers.
+    any peer;
 
 protected:
     const SourceType type;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mbgl/map/backend.hpp>
+#include <mbgl/map/change.hpp>
 #include <mbgl/map/camera.hpp>
 #include <mbgl/map/map.hpp>
 #include <mbgl/map/view.hpp>
@@ -16,12 +17,16 @@
 #include "annotation/polyline.hpp"
 #include "graphics/pointf.hpp"
 #include "graphics/rectf.hpp"
-#include "geometry/feature.hpp"
+#include "geojson/feature.hpp"
 #include "geometry/lat_lng.hpp"
 #include "geometry/projected_meters.hpp"
 #include "style/layers/layers.hpp"
 #include "style/sources/sources.hpp"
+#include "geometry/lat_lng_bounds.hpp"
+#include "map/camera_position.hpp"
+#include "style/light.hpp"
 
+#include <exception>
 #include <string>
 #include <jni.h>
 #include <android/native_window.h>
@@ -40,7 +45,13 @@ public:
 
     static void registerNative(jni::JNIEnv&);
 
-    NativeMapView(jni::JNIEnv&, jni::Object<NativeMapView>, jni::Object<FileSource>, jni::jfloat, jni::jint, jni::jlong);
+    NativeMapView(jni::JNIEnv&,
+                  jni::Object<NativeMapView>,
+                  jni::Object<FileSource>,
+                  jni::jfloat pixelRatio,
+                  jni::String programCacheDir,
+                  jni::jint availableProcessors,
+                  jni::jlong totalMemory);
 
     virtual ~NativeMapView();
 
@@ -50,8 +61,25 @@ public:
 
     // mbgl::Backend //
 
+    void updateAssumedState() override;
     void invalidate() override;
-    void notifyMapChange(mbgl::MapChange) override;
+
+    // Deprecated //
+    void notifyMapChange(mbgl::MapChange);
+
+    // mbgl::Backend (mbgl::MapObserver) //
+    void onCameraWillChange(MapObserver::CameraChangeMode) override;
+    void onCameraIsChanging() override;
+    void onCameraDidChange(MapObserver::CameraChangeMode) override;
+    void onWillStartLoadingMap() override;
+    void onDidFinishLoadingMap() override;
+    void onDidFailLoadingMap(std::exception_ptr) override;
+    void onWillStartRenderingFrame() override;
+    void onDidFinishRenderingFrame(MapObserver::RenderMode) override;
+    void onWillStartRenderingMap() override;
+    void onDidFinishRenderingMap(MapObserver::RenderMode) override;
+    void onDidFinishLoadingStyle() override;
+    void onSourceChanged(mbgl::style::Source&) override;
 
     // JNI //
 
@@ -67,11 +95,7 @@ public:
 
     void initializeDisplay(jni::JNIEnv&);
 
-    void terminateDisplay(jni::JNIEnv&);
-
     void initializeContext(jni::JNIEnv&);
-
-    void terminateContext(jni::JNIEnv&);
 
     void createSurface(jni::JNIEnv&, jni::Object<>);
 
@@ -84,6 +108,8 @@ public:
     jni::String getStyleJson(jni::JNIEnv&);
 
     void setStyleJson(jni::JNIEnv&, jni::String);
+
+    void setLatLngBounds(jni::JNIEnv&, jni::Object<mbgl::android::LatLngBounds>);
 
     void cancelTransitions(jni::JNIEnv&);
 
@@ -101,6 +127,8 @@ public:
 
     void setLatLng(jni::JNIEnv&, jni::jdouble, jni::jdouble, jni::jlong);
 
+    jni::Object<CameraPosition> getCameraForLatLngBounds(jni::JNIEnv&, jni::Object<mbgl::android::LatLngBounds>);
+
     void setReachability(jni::JNIEnv&, jni::jboolean);
 
     void resetPosition(jni::JNIEnv&);
@@ -108,12 +136,6 @@ public:
     jni::jdouble getPitch(jni::JNIEnv&);
 
     void setPitch(jni::JNIEnv&, jni::jdouble, jni::jlong);
-
-    void scaleBy(jni::JNIEnv&, jni::jdouble, jni::jdouble, jni::jdouble, jni::jlong);
-
-    void setScale(jni::JNIEnv&, jni::jdouble, jni::jdouble, jni::jdouble, jni::jlong);
-
-    jni::jdouble getScale(jni::JNIEnv&);
 
     void setZoom(jni::JNIEnv&, jni::jdouble, jni::jdouble, jni::jdouble, jni::jlong);
 
@@ -147,7 +169,7 @@ public:
 
     void enableFps(jni::JNIEnv&, jni::jboolean enable);
 
-    jni::Array<jni::jdouble> getCameraValues(jni::JNIEnv&);
+    jni::Object<CameraPosition> getCameraPosition(jni::JNIEnv&);
 
     void updateMarker(jni::JNIEnv&, jni::jlong, jni::jdouble, jni::jdouble, jni::String);
 
@@ -197,13 +219,15 @@ public:
 
     jni::Array<jlong> queryPointAnnotations(JNIEnv&, jni::Object<RectF>);
 
-    jni::Array<jni::Object<Feature>> queryRenderedFeaturesForPoint(JNIEnv&, jni::jfloat, jni::jfloat,
+    jni::Array<jni::Object<geojson::Feature>> queryRenderedFeaturesForPoint(JNIEnv&, jni::jfloat, jni::jfloat,
                                                                    jni::Array<jni::String>,
                                                                    jni::Array<jni::Object<>> jfilter);
 
-    jni::Array<jni::Object<Feature>> queryRenderedFeaturesForBox(JNIEnv&, jni::jfloat, jni::jfloat, jni::jfloat,
+    jni::Array<jni::Object<geojson::Feature>> queryRenderedFeaturesForBox(JNIEnv&, jni::jfloat, jni::jfloat, jni::jfloat,
                                                                  jni::jfloat, jni::Array<jni::String>,
                                                                  jni::Array<jni::Object<>> jfilter);
+
+    jni::Object<Light> getLight(JNIEnv&);
 
     jni::Array<jni::Object<Layer>> getLayers(JNIEnv&);
 
@@ -238,6 +262,7 @@ public:
 protected:
     // mbgl::Backend //
 
+    gl::ProcAddress initializeExtension(const char*) override;
     void activate() override;
     void deactivate() override;
 
@@ -256,12 +281,12 @@ private:
 
     EGLConfig chooseConfig(const EGLConfig configs[], EGLint numConfigs);
 
-    void updateViewBinding();
     mbgl::Size getFramebufferSize() const;
 
     void updateFps();
 
 private:
+    void recalculateSourceTileCacheSize();
 
     JavaVM *vm = nullptr;
     jni::UniqueWeakObject<NativeMapView> javaPeer;
@@ -290,10 +315,12 @@ private:
     bool firstRender = true;
     double fps = 0.0;
 
-    int width = 0;
-    int height = 0;
-    int fbWidth = 0;
-    int fbHeight = 0;
+    // Minimum texture size according to OpenGL ES 2.0 specification.
+    int width = 64;
+    int height = 64;
+    int fbWidth = 64;
+    int fbHeight = 64;
+
     bool framebufferSizeChanged = true;
 
     int availableProcessors = 0;
@@ -303,8 +330,6 @@ private:
     std::shared_ptr<mbgl::ThreadPool> threadPool;
     std::unique_ptr<mbgl::Map> map;
     mbgl::EdgeInsets insets;
-
-    unsigned active = 0;
 };
 
 } // namespace android

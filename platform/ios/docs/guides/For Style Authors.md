@@ -76,6 +76,8 @@ gestures.
 
 For more information about user interface design, consult Apple’s
 [_iOS Human Interface Guidelines_](https://developer.apple.com/ios/human-interface-guidelines/).
+To learn more about designing maps for mobile devices, see [Nathaniel Slaughter's blog post](https://www.mapbox.com/blog/designing-maps-for-mobile-devices/) on
+the subject.
 
 ## Applying your style
 
@@ -181,6 +183,7 @@ In style JSON | In the SDK
 `background` | `MGLBackgroundStyleLayer`
 `circle` | `MGLCircleStyleLayer`
 `fill` | `MGLFillStyleLayer`
+`fill-extrusion` | `MGLFillExtrusionStyleLayer`
 `line` | `MGLLineStyleLayer`
 `raster` | `MGLRasterStyleLayer`
 `symbol` | `MGLSymbolStyleLayer`
@@ -190,30 +193,6 @@ layer objects. The property names generally correspond to the style JSON
 properties, except for the use of camelCase instead of kebab-case. Properties
 whose names differ from the style specification are listed below:
 
-### Circle style functions
-
-The runtime styling API introduces `MGLStyleFunction` to the iOS SDK.
-[Data-driven styling](data-driven-styling.html) expands `MGLStyleFunction`.
-Individual style property documentation includes which subclasses of
-`MGLStyleFunction` are enabled for that property. You can use `MGLStyleValue`
-methods to create a `MGLStyleFunction`.
-
-In style specification | In the SDK                    | [MGLStyleValue valueWithInterpolationMode:...]
------------------------|-------------------------------|-------------
-`zoom function`        | `MGLCameraStyleFunction`      | `cameraStops:options:`
-`property function`    | `MGLSourceStyleFunction`      | `sourceStops:attributeName:options:`
-`zoom-and-property functions`| `MGLCompositeStyleFunction` | `compositeStops:attributeName:options:`
-
-Data-driven styling also introduces interpolation mode, which defines the
-relationship between style values and attributes or zoom levels.
-
-In style specification       | In the SDK
------------------------------|-----------
-`exponential`                | `MGLInterpolationModeExponential`
-`interval`                   | `MGLInterpolationModeInterval`
-`categorical`                | `MGLInterpolationModeCategorical`
-`identity`                   | `MGLInterpolationModeIdentity`
-
 ### Circle style layers
 
 In style JSON | In Objective-C | In Swift
@@ -221,30 +200,6 @@ In style JSON | In Objective-C | In Swift
 `circle-pitch-scale` | `MGLCircleStyleLayer.circleScaleAlignment` | `MGLCircleStyleLayer.circleScaleAlignment`
 `circle-translate` | `MGLCircleStyleLayer.circleTranslation` | `MGLCircleStyleLayer.circleTranslation`
 `circle-translate-anchor` | `MGLCircleStyleLayer.circleTranslationAnchor` | `MGLCircleStyleLayer.circleTranslationAnchor`
-
-### Fill style functions
-
-The runtime styling API introduces `MGLStyleFunction` to the iOS SDK.
-[Data-driven styling](data-driven-styling.html) expands `MGLStyleFunction`.
-Individual style property documentation includes which subclasses of
-`MGLStyleFunction` are enabled for that property. You can use `MGLStyleValue`
-methods to create a `MGLStyleFunction`.
-
-In style specification | In the SDK                    | [MGLStyleValue valueWithInterpolationMode:...]
------------------------|-------------------------------|-------------
-`zoom function`        | `MGLCameraStyleFunction`      | `cameraStops:options:`
-`property function`    | `MGLSourceStyleFunction`      | `sourceStops:attributeName:options:`
-`zoom-and-property functions`| `MGLCompositeStyleFunction` | `compositeStops:attributeName:options:`
-
-Data-driven styling also introduces interpolation mode, which defines the
-relationship between style values and attributes or zoom levels.
-
-In style specification       | In the SDK
------------------------------|-----------
-`exponential`                | `MGLInterpolationModeExponential`
-`interval`                   | `MGLInterpolationModeInterval`
-`categorical`                | `MGLInterpolationModeCategorical`
-`identity`                   | `MGLInterpolationModeIdentity`
 
 ### Fill style layers
 
@@ -254,29 +209,12 @@ In style JSON | In Objective-C | In Swift
 `fill-translate` | `MGLFillStyleLayer.fillTranslation` | `MGLFillStyleLayer.fillTranslation`
 `fill-translate-anchor` | `MGLFillStyleLayer.fillTranslationAnchor` | `MGLFillStyleLayer.fillTranslationAnchor`
 
-### Line style functions
+### Fill extrusion style layers
 
-The runtime styling API introduces `MGLStyleFunction` to the iOS SDK.
-[Data-driven styling](data-driven-styling.html) expands `MGLStyleFunction`.
-Individual style property documentation includes which subclasses of
-`MGLStyleFunction` are enabled for that property. You can use `MGLStyleValue`
-methods to create a `MGLStyleFunction`.
-
-In style specification | In the SDK                    | [MGLStyleValue valueWithInterpolationMode:...]
------------------------|-------------------------------|-------------
-`zoom function`        | `MGLCameraStyleFunction`      | `cameraStops:options:`
-`property function`    | `MGLSourceStyleFunction`      | `sourceStops:attributeName:options:`
-`zoom-and-property functions`| `MGLCompositeStyleFunction` | `compositeStops:attributeName:options:`
-
-Data-driven styling also introduces interpolation mode, which defines the
-relationship between style values and attributes or zoom levels.
-
-In style specification       | In the SDK
------------------------------|-----------
-`exponential`                | `MGLInterpolationModeExponential`
-`interval`                   | `MGLInterpolationModeInterval`
-`categorical`                | `MGLInterpolationModeCategorical`
-`identity`                   | `MGLInterpolationModeIdentity`
+In style JSON | In Objective-C | In Swift
+--------------|----------------|---------
+`fill-extrusion-translate` | `MGLFillExtrusionStyleLayer.fillExtrusionTranslation` | `MGLFillExtrusionStyleLayer.fillExtrusionTranslation`
+`fill-extrusion-translate-anchor` | `MGLFillExtrusionStyleLayer.fillExtrusionTranslationAnchor` | `MGLFillExtrusionStyleLayer.fillExtrusionTranslationAnchor`
 
 ### Line style layers
 
@@ -286,30 +224,6 @@ In style JSON | In Objective-C | In Swift
 `line-translate` | `MGLLineStyleLayer.lineTranslation` | `MGLLineStyleLayer.lineTranslation`
 `line-translate-anchor` | `MGLLineStyleLayer.lineTranslationAnchor` | `MGLLineStyleLayer.lineTranslationAnchor`
 
-### Raster style functions
-
-The runtime styling API introduces `MGLStyleFunction` to the iOS SDK.
-[Data-driven styling](data-driven-styling.html) expands `MGLStyleFunction`.
-Individual style property documentation includes which subclasses of
-`MGLStyleFunction` are enabled for that property. You can use `MGLStyleValue`
-methods to create a `MGLStyleFunction`.
-
-In style specification | In the SDK                    | [MGLStyleValue valueWithInterpolationMode:...]
------------------------|-------------------------------|-------------
-`zoom function`        | `MGLCameraStyleFunction`      | `cameraStops:options:`
-`property function`    | `MGLSourceStyleFunction`      | `sourceStops:attributeName:options:`
-`zoom-and-property functions`| `MGLCompositeStyleFunction` | `compositeStops:attributeName:options:`
-
-Data-driven styling also introduces interpolation mode, which defines the
-relationship between style values and attributes or zoom levels.
-
-In style specification       | In the SDK
------------------------------|-----------
-`exponential`                | `MGLInterpolationModeExponential`
-`interval`                   | `MGLInterpolationModeInterval`
-`categorical`                | `MGLInterpolationModeCategorical`
-`identity`                   | `MGLInterpolationModeIdentity`
-
 ### Raster style layers
 
 In style JSON | In Objective-C | In Swift
@@ -317,30 +231,6 @@ In style JSON | In Objective-C | In Swift
 `raster-brightness-max` | `MGLRasterStyleLayer.maximumRasterBrightness` | `MGLRasterStyleLayer.maximumRasterBrightness`
 `raster-brightness-min` | `MGLRasterStyleLayer.minimumRasterBrightness` | `MGLRasterStyleLayer.minimumRasterBrightness`
 `raster-hue-rotate` | `MGLRasterStyleLayer.rasterHueRotation` | `MGLRasterStyleLayer.rasterHueRotation`
-
-### Symbol style functions
-
-The runtime styling API introduces `MGLStyleFunction` to the iOS SDK.
-[Data-driven styling](data-driven-styling.html) expands `MGLStyleFunction`.
-Individual style property documentation includes which subclasses of
-`MGLStyleFunction` are enabled for that property. You can use `MGLStyleValue`
-methods to create a `MGLStyleFunction`.
-
-In style specification | In the SDK                    | [MGLStyleValue valueWithInterpolationMode:...]
------------------------|-------------------------------|-------------
-`zoom function`        | `MGLCameraStyleFunction`      | `cameraStops:options:`
-`property function`    | `MGLSourceStyleFunction`      | `sourceStops:attributeName:options:`
-`zoom-and-property functions`| `MGLCompositeStyleFunction` | `compositeStops:attributeName:options:`
-
-Data-driven styling also introduces interpolation mode, which defines the
-relationship between style values and attributes or zoom levels.
-
-In style specification       | In the SDK
------------------------------|-----------
-`exponential`                | `MGLInterpolationModeExponential`
-`interval`                   | `MGLInterpolationModeInterval`
-`categorical`                | `MGLInterpolationModeCategorical`
-`identity`                   | `MGLInterpolationModeIdentity`
 
 ### Symbol style layers
 
@@ -374,9 +264,11 @@ In style JSON | In Objective-C | In Swift
 
 Each property representing a layout or paint attribute is set to an
 `MGLStyleValue` object, which is either an `MGLConstantStyleValue` object (for
-constant values) or an `MGLStyleFunction` object (for zoom level functions). The
+constant values) or an `MGLStyleFunction` object (for style functions). The
 style value object is a container for the raw value or function parameters that
 you want the attribute to be set to.
+
+### Constant style values
 
 In contrast to the JSON type that the style specification defines for each
 layout or paint property, the style value object often contains a more specific
@@ -401,6 +293,39 @@ For padding attributes, note that the arguments to
 in Swift
 are specified in counterclockwise order, in contrast to the clockwise order
 defined by the style specification.
+
+### Style functions
+
+A _style function_ allows you to vary the value of a layout or paint attribute
+based on the zoom level, data provided by content sources, or both. For more
+information about style functions, see “[Using Style Functions at Runtime](using-style-functions-at-runtime.html)”.
+
+Each kind of style function is represented by a distinct class, but you
+typically create style functions as you create any other style value, using
+class methods on `MGLStyleValue`:
+
+In style specification     | SDK class                   | SDK factory method
+---------------------------|-----------------------------|-------------------
+zoom function              | `MGLCameraStyleFunction`    | `+[MGLStyleValue valueWithInterpolationMode:cameraStops:options:]`
+property function          | `MGLSourceStyleFunction`    | `+[MGLStyleValue valueWithInterpolationMode:sourceStops:attributeName:options:]`
+zoom-and-property function | `MGLCompositeStyleFunction` | `+[MGLStyleValue valueWithInterpolationMode:compositeStops:attributeName:options:]`
+
+The documentation for each individual style layer property indicates the kinds
+of style functions that are enabled for that property.
+
+When you create a style function, you specify an _interpolation mode_ and a
+series of _stops_. Each stop determines the effective value displayed at a
+particular zoom level (for camera functions) or the effective value on features
+with a particular attribute value in the content source (for source functions).
+The interpolation mode tells the SDK how to calculate the effective value
+between any two stops:
+
+In style specification       | In the SDK
+-----------------------------|-----------
+`exponential`                | `MGLInterpolationModeExponential`
+`interval`                   | `MGLInterpolationModeInterval`
+`categorical`                | `MGLInterpolationModeCategorical`
+`identity`                   | `MGLInterpolationModeIdentity`
 
 ## Filtering sources
 

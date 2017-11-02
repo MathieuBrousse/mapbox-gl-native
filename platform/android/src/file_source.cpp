@@ -2,21 +2,24 @@
 
 #include <mbgl/util/logging.hpp>
 
-#include <string>
-
+#include "asset_manager_file_source.hpp"
 #include "jni/generic_global_ref_deleter.hpp"
 
+#include <string>
 
 namespace mbgl {
 namespace android {
 
 // FileSource //
 
-FileSource::FileSource(jni::JNIEnv& _env, jni::String accessToken, jni::String _cachePath, jni::String _apkPath) {
+FileSource::FileSource(jni::JNIEnv& _env,
+                       jni::String accessToken,
+                       jni::String _cachePath,
+                       jni::Object<AssetManager> assetManager) {
     // Create a core default file source
     fileSource = std::make_unique<mbgl::DefaultFileSource>(
         jni::Make<std::string>(_env, _cachePath) + "/mbgl-offline.db",
-        jni::Make<std::string>(_env, _apkPath));
+        std::make_unique<AssetManagerFileSource>(_env, assetManager));
 
     // Set access token
     fileSource->setAccessToken(jni::Make<std::string>(_env, accessToken));
@@ -46,10 +49,10 @@ void FileSource::setResourceTransform(jni::JNIEnv& env, jni::Object<FileSource::
             // a subsequent call.
             // Note: we're converting it to shared_ptr because this lambda is converted to a std::function,
             // which requires copyability of its captured variables.
-            callback = std::shared_ptr<jni::jobject>(transformCallback.NewGlobalRef(env).release()->Get(), GenericGlobalRefDeleter()),
-            env
+            callback = std::shared_ptr<jni::jobject>(transformCallback.NewGlobalRef(env).release()->Get(), GenericGlobalRefDeleter())
         ](mbgl::Resource::Kind kind, std::string&& url_) {
-            return FileSource::ResourceTransformCallback::onURL(const_cast<jni::JNIEnv&>(env), jni::Object<FileSource::ResourceTransformCallback>(*callback), int(kind), url_);
+            android::UniqueEnv _env = android::AttachEnv();
+            return FileSource::ResourceTransformCallback::onURL(*_env, jni::Object<FileSource::ResourceTransformCallback>(*callback), int(kind), url_);
         });
     } else {
         // Reset the callback
@@ -80,7 +83,7 @@ void FileSource::registerNative(jni::JNIEnv& env) {
     // Register the peer
     jni::RegisterNativePeer<FileSource>(
         env, FileSource::javaClass, "nativePtr",
-        std::make_unique<FileSource, JNIEnv&, jni::String, jni::String, jni::String>,
+        std::make_unique<FileSource, JNIEnv&, jni::String, jni::String, jni::Object<AssetManager>>,
         "initialize",
         "finalize",
         METHOD(&FileSource::getAccessToken, "getAccessToken"),
