@@ -76,6 +76,7 @@ public class MapView extends FrameLayout {
     ImageView logoView;
     ImageView attrView;
     MyLocationView myLocationView;
+    public static boolean renderCenterDot = false;
 
     @UiThread
     public MapView(@NonNull Context context) {
@@ -1009,5 +1010,4 @@ public class MapView extends FrameLayout {
         myLocationView.setBearing(bearing);
         nativeMapView.setBearing(bearing);
     }
-
 }
