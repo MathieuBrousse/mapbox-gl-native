@@ -22,7 +22,9 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.CallSuper;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntDef;
@@ -76,8 +78,6 @@ import com.mapbox.mapboxsdk.constants.MyLocationTracking;
 import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.exceptions.IconBitmapChangedException;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationListener;
-import com.mapbox.mapboxsdk.location.LocationServices;
 import com.mapbox.mapboxsdk.maps.widgets.CompassView;
 import com.mapbox.mapboxsdk.maps.widgets.MyLocationView;
 import com.mapbox.mapboxsdk.maps.widgets.MyLocationViewSettings;
@@ -130,7 +130,7 @@ public class MapView extends FrameLayout {
     private ImageView logoView;
     private ImageView attributionsView;
     private MyLocationView myLocationView;
-    private LocationListener myLocationListener;
+    //private LocationListener myLocationListener;
 
     private Projection projection;
 
@@ -265,6 +265,7 @@ public class MapView extends FrameLayout {
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH)) {
             mapboxMap.getUiSettings().setZoomControlsEnabled(true);
         }
+        myLocationView.toggleGps(false);
     }
 
     private void setInitialState(MapboxMapOptions options) {
@@ -1623,7 +1624,7 @@ public class MapView extends FrameLayout {
         return direction;
     }
 
-    void setBearing(float bearing) {
+    public void setBearing(float bearing) {
         if (destroyed) {
             return;
         }
@@ -1662,12 +1663,12 @@ public class MapView extends FrameLayout {
         }
 
         // make sure we don't leak location listener
-        if (myLocationListener != null) {
+        /*if (myLocationListener != null) {
             // cleanup to prevent memory leak
             LocationServices services = LocationServices.getLocationServices(getContext());
             services.removeLocationListener(myLocationListener);
             myLocationListener = null;
-        }
+        }*/
     }
 
     // Called when view is hidden and shown
@@ -2700,8 +2701,29 @@ public class MapView extends FrameLayout {
         return myLocationView.getLocation();
     }
 
-    void setOnMyLocationChangeListener(@Nullable final MapboxMap.OnMyLocationChangeListener listener) {
-        if (listener != null) {
+    /**
+     +     * Set the currently displayed user location, or null if there is no location data available.
+     +     */
+    @UiThread
+    @Nullable
+    public void setMyLocation(Location location) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            if(location.getElapsedRealtimeNanos() == 0) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    location.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
+                } else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                        location.setElapsedRealtimeNanos(System.currentTimeMillis());
+                    }
+                }
+            }
+        }
+        myLocationView.setLocation(location);
+    }
+
+
+     void setOnMyLocationChangeListener(@Nullable final MapboxMap.OnMyLocationChangeListener listener) {
+        /*if (listener != null) {
             myLocationListener = new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
@@ -2714,7 +2736,7 @@ public class MapView extends FrameLayout {
         } else {
             LocationServices.getLocationServices(getContext()).removeLocationListener(myLocationListener);
             myLocationListener = null;
-        }
+        }*/
     }
 
     void setMyLocationTrackingMode(@MyLocationTracking.Mode int myLocationTrackingMode) {
@@ -2826,7 +2848,7 @@ public class MapView extends FrameLayout {
         setWidgetMargins(logoView, left, top, right, bottom);
     }
 
-    void setLogoEnabled(boolean visible) {
+    public void setLogoEnabled(boolean visible) {
         logoView.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
@@ -2842,7 +2864,7 @@ public class MapView extends FrameLayout {
         setWidgetMargins(attributionsView, left, top, right, bottom);
     }
 
-    void setAttributionEnabled(int visibility) {
+    public void setAttributionEnabled(int visibility) {
         attributionsView.setVisibility(visibility);
     }
 

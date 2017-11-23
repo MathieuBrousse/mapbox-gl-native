@@ -249,7 +249,7 @@ public class MyLocationView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (location == null || foregroundBounds == null || backgroundBounds == null || accuracyAnimator == null || screenLocation == null) {
+        if (location == null || foregroundBounds == null || backgroundBounds == null || /*accuracyAnimator == null ||*/ screenLocation == null) {
             // Not ready yet
             return;
         }
@@ -291,18 +291,20 @@ public class MyLocationView extends View {
         // draw circle
         canvas.drawCircle(0, 0, accuracyPixels, accuracyPaint);
 
-        // draw shadow
-        if (backgroundDrawable != null) {
-            backgroundDrawable.draw(canvas);
-        }
-
-        // draw foreground
-        if (myBearingTrackingMode == MyBearingTracking.NONE) {
-            if (foregroundDrawable != null) {
-                foregroundDrawable.draw(canvas);
+        if (mapboxMap.getMyLocationViewSettings().getRenderCenterDot()) {
+            // draw shadow
+            if (backgroundDrawable != null) {
+                backgroundDrawable.draw(canvas);
             }
-        } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
-            foregroundBearingDrawable.draw(canvas);
+
+            // draw foreground
+            if (myBearingTrackingMode == MyBearingTracking.NONE) {
+                if (foregroundDrawable != null) {
+                    foregroundDrawable.draw(canvas);
+                }
+            } else if (foregroundBearingDrawable != null && foregroundBounds != null) {
+                foregroundBearingDrawable.draw(canvas);
+            }
         }
     }
 
@@ -414,8 +416,8 @@ public class MyLocationView extends View {
      *
      * @param enableGps true if GPS is to be enabled, false if GPS is to be disabled
      */
-    private void toggleGps(boolean enableGps) {
-        LocationServices locationServices = LocationServices.getLocationServices(getContext());
+    public void toggleGps(boolean enableGps) {
+        /*LocationServices locationServices = LocationServices.getLocationServices(getContext());
         if (enableGps) {
             // Set an initial location if one available
             Location lastLocation = locationServices.getLastLocation();
@@ -435,7 +437,7 @@ public class MyLocationView extends View {
             locationServices.removeLocationListener(userLocationListener);
         }
 
-        locationServices.toggleGPS(enableGps);
+        locationServices.toggleGPS(enableGps);*/
     }
 
     public Location getLocation() {
@@ -667,7 +669,7 @@ public class MyLocationView extends View {
                 accuracyAnimator.end();
             }
 
-            accuracyAnimator = ValueAnimator.ofFloat(accuracy * 10, location.getAccuracy() * 10);
+            accuracyAnimator = ValueAnimator.ofFloat(accuracy, location.getAccuracy());
             accuracyAnimator.setDuration(750);
             accuracyAnimator.start();
             accuracy = location.getAccuracy();
